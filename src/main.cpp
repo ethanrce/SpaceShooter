@@ -12,22 +12,19 @@ int main(void) {
     // Limits FPS to refresh rate of monitor
     SetWindowState(FLAG_VSYNC_HINT);
 
+    Texture2D background = LoadTexture("assets/River/background.png");
     //std::cout << "Hello world";
 
     while (!WindowShouldClose()) {
 
         BeginDrawing();
-        
-        ClearBackground(RAYWHITE);
-        const char *background = "assets/River/background.png";
-        Texture2D background2 = LoadTexture(background);
-        DrawTexture(background2, height/2, width/2, RAYWHITE);
 
-        LoadImageFromScreen();
+        DrawTextureEx(background, GetWindowPosition(), 0.0f, 2.0f, WHITE);
         DrawFPS(10, 10);
 
         EndDrawing();
     }
+
 
     CloseWindow();
 
