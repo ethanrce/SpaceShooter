@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 
+#define FPS 60
+#define FRAMESPEED 8
 
 int main(void) {
     int height = 800;
@@ -16,24 +18,28 @@ int main(void) {
     // Vector2 (xf, yf)
 
     InitWindow(height, width, "SpaceShooter");
-    int FPS = 60;
     SetTargetFPS(FPS);
-
+    
     Texture2D background = LoadTexture("assets/River/background.png");
     NPatchInfo info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
 
-    
     Texture2D ship = LoadTexture("assets/spritesheets/ship.png");
     // Main character sprite animation settings
-    Rectangle shipRec = {0, 0, (float)((ship.width/5.0f)), (float)(ship.height/2.0f)};
+    Rectangle shipRec = {0.0f, 0.0f, (float)((ship.width/5.0f)), (float)(ship.height/2.0f)};
     int spriteframe = 0;
-    int framespeed = 8;
     int framecounter = 0;
+
+    // Main character position/scaling settings
+    float scalerate = (0.1/(shipRec.width/GetScreenWidth())); // Character's width should be 10% of screen.
+    Rectangle position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/2.0f), (float)(ship.width/5.0f) * scalerate, (float)(ship.height/2.0f) * scalerate};
+    Vector2 origin = {(float)(position.width/2.0f), (float)(position.height/2.0f)};
+    float rotation = 0.0f;
 
     while (!WindowShouldClose()) {
         // Main character sprite animation controller
         framecounter ++;
-        if (framecounter >= (FPS/framespeed)) {
+        shipRec.y = 0.0f;
+        if (framecounter >= (FPS/FRAMESPEED)) {
             spriteframe ++;
             framecounter = 0;
 
@@ -41,20 +47,38 @@ int main(void) {
                 spriteframe = 1;
             }
 
-            shipRec.x = ((float)ship.width/5) * spriteframe;
+            shipRec.x = ((float)ship.width/5.0f) * spriteframe;
         }
 
-        // Main character sprite scaling settings
-        float scalerate = 7.0f;
-        Rectangle scale = {(float)(GetScreenWidth()/2.0), (float)(GetScreenHeight()/2.0), (float)(ship.width/5.0f) * scalerate, (float)(ship.height/2.0f) * scalerate};
-        Vector2 origin = {(float)(scale.width/2.0f), (float)(scale.height/2.0f)};
+        // TODO: Need to fix borders during window resizing in main menu.
+        // TODO: Allow for rotation speed slider in main menu
+        if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
+            shipRec.y = ((float)(ship.height/2.0f));
+            rotation += 1;
+        }
+        if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
+            shipRec.y = ((float)(ship.height/2.0f));
+            rotation -= 1;
+        }
+        if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
+         //   if ((float)(position.y) < ((float)((GetScreenHeight()/2.0f)))) {
+                origin.y += 3.0f;
+                shipRec.y = ((float)(ship.height/2.0f));
+         //   }
+        }
+        if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)){
+          //  if ((float)(position.y - scale.height) > ((float)(-1*(GetScreenHeight()/2.0f)))) {
+                origin.y -= 3.0f;
+                shipRec.y = ((float)(ship.height/2.0f));
+         //   }
+        }
 
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
         
         DrawTextureNPatch(background, info, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
-        DrawTexturePro(ship, shipRec, scale, origin, 0.0f, RAYWHITE); //Draws character
+        DrawTexturePro(ship, shipRec, position, origin, rotation, RAYWHITE); //Draws character
         DrawFPS(10, 10);
 
         EndDrawing();
