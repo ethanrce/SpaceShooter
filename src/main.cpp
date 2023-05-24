@@ -3,60 +3,118 @@
 #include <fstream>
 #include <iostream>
 using namespace std;
-#include "player.h"
+#include "objects.h"
 #include <vector>
 
 #define FPS 60
 #define FRAMESPEED 8
 #define SHIPSPEED 1.5f
 #define LASERSPEED 2.0f
-#define LASERCOOLDOWN 1
+#define LASERCOOLDOWN 1.0f // Seconds between laser shots
+#define SCREENHEIGHT 400
+#define SCREENWIDTH 400
+
+// Game texture/Object variables
+Texture2D background;
+NPatchInfo info;
+Texture2D shippng;
+Object ship;
+Texture2D laser;
+vector<Object> lasers;
+Texture2D enemys;
+Texture2D enemym;
+Texture2D enemyl;
+
+// Game texture scaling
+float scale;
+
+// Main character sprite animation settings
+int spriteframe;
+int framecounter;
+
+// Laser cooldown, animation & position settings
+int lasershootcounter;
+bool canShoot;
+int lasercounter;
+int laserframe;
+int laserx;
+int lasery; 
+
 // Rectangle = {xf, yf, widthf, heightf}
 // Vector2 (xf, yf)
 
-int main(void) {
-    int height = 400;
-    int width = 400;
+// Loads all necessary textures for the game
+void LoadTextures(void) {
+    background = LoadTexture("assets/River/background.png");
+    info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
 
+    shippng = LoadTexture("assets/spritesheets/ship.png");
+    scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen.
+    ship = makePlayer(shippng, scale, GetScreenWidth(), GetScreenHeight());
+
+    laser = LoadTexture("assets/spritesheets/laser-bolts.png");
+
+    enemys = LoadTexture("assets/spritesheets/enemy-small.png");
+    enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
+    enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
+}
+
+// Initializes game variables/settings
+void InitGame(void) {
+    SetTargetFPS(FPS);
+
+    spriteframe = 0;
+    framecounter = 0;
+
+    lasershootcounter = 0;
+    canShoot = true;
+    lasercounter = 0;
+    laserframe = 0;
+}
+
+// Constructs a new laser if player can shoot
+void makeLaser(void) {
+    if (ship.rotation == 0.0f) {
+        laserx = ship.position.x;
+        lasery = ship.position.y - (ship.position.height/2.0f);
+    } else if (ship.rotation == 90.0f) {
+        laserx = ship.position.x + (ship.position.width/2.0f);
+        lasery = ship.position.y;
+    } else if (ship.rotation == 180.0f) {
+        laserx = ship.position.x;
+        lasery = ship.position.y + (ship.position.height/2.0f);
+    } else {
+        laserx = ship.position.x - (ship.position.width/2.0f);
+        lasery = ship.position.y;
+    }
+    Object newLaser = shootLaser(laserx, lasery, ship.rotation, laser.width, laser.height, scale/2.0f);
+    lasers.push_back(newLaser);
+}
+
+// Unloads all load textures, sounds, models, etc.
+void UnloadGame(void) {
+    UnloadTexture(background);
+    UnloadTexture(shippng);
+    UnloadTexture(laser);
+    UnloadTexture(enemys);
+    UnloadTexture(enemym);
+    UnloadTexture(enemyl);
+}
+
+int main(void) {
     // Limits FPS to refresh rate of monitor
     //SetWindowState(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-    InitWindow(height, width, "SpaceShooter");
-    SetTargetFPS(FPS);
-    
-    Texture2D background = LoadTexture("assets/River/background.png");
-    NPatchInfo info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
+    InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
 
-    Texture2D ship = LoadTexture("assets/spritesheets/ship.png");
-    // Main character sprite animation settings
-    Rectangle shipRec = {0.0f, 0.0f, (float)((ship.width/5.0f)), (float)(ship.height/2.0f)};
-    int spriteframe = 0;
-    int framecounter = 0;
+    LoadTextures();
+    InitGame();
 
-    // Main character position/scaling settings
-    float scalerate = (0.1/(shipRec.width/GetScreenWidth())); // Character's width should be 10% of screen.
-    Rectangle position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/2.0f), (float)(ship.width/5.0f) * scalerate, (float)(ship.height/2.0f) * scalerate};
-    Vector2 origin = {(float)(position.width/2.0f), (float)(position.height/2.0f)};
-    float rotation = 0.0f;
-
-    // Laser position/animation settings
-    Texture2D laser = LoadTexture("assets/spritesheets/laser-bolts.png");
-    vector<Laser> lasers;
-    int lasercounter = 0;
-    int laserframe = 0;
-    int laserx;
-    int lasery;
-
-    // Laser cooldown settings
-    int lasershootcounter = 0;
-    bool canShoot = true;
-
-    Texture2D enemys = LoadTexture("assets/spritesheets/enemy-small.png");
     while (!WindowShouldClose()) {
         // Main character sprite animation controller
         framecounter ++;
-        shipRec.y = 0.0f;
+        ship.drawRec.y = 0.0f;
         if (framecounter >= (FPS/FRAMESPEED)) {
             spriteframe ++;
             framecounter = 0;
@@ -65,65 +123,51 @@ int main(void) {
                 spriteframe = 1;
             }
 
-            shipRec.x = ((float)ship.width/5.0f) * spriteframe;
+            ship.drawRec.x = ((float)shippng.width/5.0f) * spriteframe;
         }
 
         // TODO: Need to fix borders during window resizing in main menu.
         // TODO: Allow for rotation speed slider in main menu
         if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
-            if (position.x < (GetScreenWidth() - (position.width/2.0f))) {
-            shipRec.y = (ship.height/2.0f);
-            position.x += SHIPSPEED;
-            rotation = 90.0f;
+            if (ship.position.x < (GetScreenWidth() - (ship.position.width/2.0f))) {
+            ship.drawRec.y = (shippng.height/2.0f);
+            ship.position.x += SHIPSPEED;
+            ship.rotation = 90.0f;
             }
         }
         if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
-            if (position.x > (position.width/2.0f)) {
-            shipRec.y = (ship.height/2.0f);
-            position.x -= SHIPSPEED;
-            rotation = 270.0f;
+            if (ship.position.x > (ship.position.width/2.0f)) {
+            ship.drawRec.y = (shippng.height/2.0f);
+            ship.position.x -= SHIPSPEED;
+            ship.rotation = 270.0f;
             }
         }
         if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
-            if (position.y > (position.height/2.0f)) {
-                position.y -= SHIPSPEED;
-                rotation = 0.0f;
-                shipRec.y = ship.height/2.0f;
+            if (ship.position.y > (ship.position.height/2.0f)) {
+                ship.position.y -= SHIPSPEED;
+                ship.rotation = 0.0f;
+                ship.drawRec.y = shippng.height/2.0f;
             }
         }
         if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)){
-            if (position.y < (GetScreenHeight() - (position.height/2.0f))) {
-                position.y += SHIPSPEED;
-                rotation = 180.0f;
-                shipRec.y = (ship.height/2.0f);
+            if (ship.position.y < (GetScreenHeight() - (ship.position.height/2.0f))) {
+                ship.position.y += SHIPSPEED;
+                ship.rotation = 180.0f;
+                ship.drawRec.y = shippng.height/2.0f;
             }
         }
 
         // Controls laser shooting cooldown
         lasershootcounter ++;
-        if (lasershootcounter >= (FPS/LASERCOOLDOWN) && !canShoot) {
-            lasershootcounter = 0;
+        if (lasershootcounter >= ((float)(FPS/(1.0f/LASERCOOLDOWN))) && !canShoot) {
             canShoot = true;
         }
 
         // Controls initiating shooting & initial position of laser
         if (IsKeyPressed(KEY_F) && canShoot) {
             canShoot = false;
-            if (rotation == 0.0f) {
-                laserx = position.x;
-                lasery = position.y - (position.height/2.0f);
-            } else if (rotation == 90.0f) {
-                laserx = position.x + (position.width/2.0f);
-                lasery = position.y;
-            } else if (rotation == 180.0f) {
-                laserx = position.x;
-                lasery = position.y + (position.height/2.0f);
-            } else {
-                laserx = position.x - (position.width/2.0f);
-                lasery = position.y;
-            }
-           Laser newLaser = shootLaser(laserx, lasery, rotation, laser.width, laser.height, scalerate/2.0f);
-           lasers.push_back(newLaser);
+            lasershootcounter = 0;
+            makeLaser();
         }
 
         BeginDrawing();
@@ -131,7 +175,8 @@ int main(void) {
         ClearBackground(RAYWHITE);
         
         DrawTextureNPatch(background, info, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
-        DrawTexturePro(ship, shipRec, position, origin, rotation, RAYWHITE); //Draws character
+        DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws character
+     //   DrawTexturePro(enemys, esRec, esposition, esorigin, 0.0f, RAYWHITE);
 
         // Controls laser drawing
         // TODO: Need to change laser's orientation depending on ship rotation.
@@ -146,7 +191,7 @@ int main(void) {
                 }
             }
             for (int i = 0; i < lasers.size(); i++) {
-                lasers[i].laserRec.x = ((float)(laser.width/2.0f) * laserframe);
+                lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
                 if (lasers[i].rotation == 0.0f) {
                     lasers[i].position.y -= LASERSPEED;
                 } else if (lasers[i].rotation == 90.0f) {
@@ -156,24 +201,21 @@ int main(void) {
                 } else {
                     lasers[i].position.x -= LASERSPEED;
                 }
-                DrawTexturePro(laser, lasers[i].laserRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
+                DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
                 // Dequeue's laser after it's off screen
                 if (lasers[i].position.x > GetScreenWidth() || lasers[i].position.x < 0 || lasers[i].position.y > GetScreenHeight() || lasers[i].position.y < 0) {
                     lasers.erase(lasers.begin() + i - 1);
                 }
             }
         }
-        cout << lasers.size() << endl;
 
         DrawFPS(10, 10);
 
         EndDrawing();
     }
 
-    UnloadTexture(background);
-    UnloadTexture(ship);
-    UnloadTexture(laser);
-    UnloadTexture(enemys);
+    UnloadGame();
+
     CloseWindow();
 
     return 0;
