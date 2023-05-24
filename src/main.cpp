@@ -40,6 +40,9 @@ int main(void) {
     float rotation = 0.0f;
 
     Texture2D laser = LoadTexture("assets/spritesheets/laser-bolts.png");
+    vector<Laser> lasers;
+    int lasercounter = 0;
+    int laserframe = 0;
 
     while (!WindowShouldClose()) {
         // Main character sprite animation controller
@@ -86,9 +89,11 @@ int main(void) {
                 shipRec.y = ((float)(ship.height/2.0f));
          //   }
         }
-
+        
+        // TODO: Need to add cooldown before being able to shoot again
         if (IsKeyDown(KEY_F)) {
-           Laser newLaser = shootLaser();
+           Laser newLaser = shootLaser(position.x, position.y - (position.height/2.0f), rotation, laser.width, laser.height, scalerate);
+           lasers.push_back(newLaser);
         }
 
         BeginDrawing();
@@ -97,6 +102,26 @@ int main(void) {
         
         DrawTextureNPatch(background, info, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
         DrawTexturePro(ship, shipRec, position, origin, rotation, RAYWHITE); //Draws character
+
+        // Controls laser drawing
+        // TODO: Need to change laser's orientation depending on ship rotation.
+        // TODO: Need to remove laser once out of window
+        if (lasers.size() != 0) {
+            lasercounter ++;
+            if (lasercounter >= (FPS/FRAMESPEED)) {
+                lasercounter = 0;
+                laserframe ++;
+                if (laserframe >= 2) {
+                    laserframe = 0;
+                }
+            }
+            for (int i = 0; i < lasers.size(); i++) {
+                lasers[i].laserRec.x = ((float)(laser.width/2.0f) * laserframe);
+                lasers[i].position.y -= 1.5f;
+                DrawTexturePro(laser, lasers[i].laserRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
+            }
+        }
+
         DrawFPS(10, 10);
 
         EndDrawing();
