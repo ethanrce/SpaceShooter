@@ -2,20 +2,24 @@
 #include <raymath.h>
 #include <fstream>
 #include <iostream>
+using namespace std;
+#include "player.h"
 
 #define FPS 60
 #define FRAMESPEED 8
 
+// Rectangle = {xf, yf, widthf, heightf}
+// Vector2 (xf, yf)
+
 int main(void) {
-    int height = 800;
-    int width = 800;
+    int height = 600;
+    int width = 600;
 
     // Limits FPS to refresh rate of monitor
     //SetWindowState(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-    // Rectangle = {xf, yf, widthf, heightf}
-    // Vector2 (xf, yf)
+
 
     InitWindow(height, width, "SpaceShooter");
     SetTargetFPS(FPS);
@@ -34,6 +38,8 @@ int main(void) {
     Rectangle position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/2.0f), (float)(ship.width/5.0f) * scalerate, (float)(ship.height/2.0f) * scalerate};
     Vector2 origin = {(float)(position.width/2.0f), (float)(position.height/2.0f)};
     float rotation = 0.0f;
+
+    Texture2D laser = LoadTexture("assets/spritesheets/laser-bolts.png");
 
     while (!WindowShouldClose()) {
         // Main character sprite animation controller
@@ -54,23 +60,35 @@ int main(void) {
         // TODO: Allow for rotation speed slider in main menu
         if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
             shipRec.y = ((float)(ship.height/2.0f));
-            rotation += 1;
+            position.x += 2.0f;
+            rotation = 90.0f;
+            // rotation += 5.0f;
         }
         if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
             shipRec.y = ((float)(ship.height/2.0f));
-            rotation -= 1;
+            position.x -= 2.0f;
+            rotation = 270.0f;
+            // rotation -= 5.0f;
         }
+
         if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
          //   if ((float)(position.y) < ((float)((GetScreenHeight()/2.0f)))) {
-                origin.y += 3.0f;
+                position.y -= 2.0f;
+                rotation = 0.0f;
                 shipRec.y = ((float)(ship.height/2.0f));
          //   }
         }
+
         if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)){
-          //  if ((float)(position.y - scale.height) > ((float)(-1*(GetScreenHeight()/2.0f)))) {
-                origin.y -= 3.0f;
+         //  if ((float)(position.y - scale.height) > ((float)(-1*(GetScreenHeight()/2.0f)))) {
+                position.y += 2.0f;
+                rotation = 180.0f;
                 shipRec.y = ((float)(ship.height/2.0f));
          //   }
+        }
+
+        if (IsKeyDown(KEY_F)) {
+           Laser newLaser = shootLaser();
         }
 
         BeginDrawing();
@@ -86,6 +104,7 @@ int main(void) {
 
     UnloadTexture(background);
     UnloadTexture(ship);
+    UnloadTexture(laser);
     CloseWindow();
 
     return 0;
