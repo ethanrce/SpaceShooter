@@ -11,8 +11,8 @@ using namespace std;
 #define SHIPSPEED 1.5f
 #define LASERSPEED 2.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
-#define SCREENHEIGHT 400
-#define SCREENWIDTH 400
+#define SCREENHEIGHT 800
+#define SCREENWIDTH 800
 
 // Game texture/Object variables
 Texture2D background;
@@ -190,7 +190,7 @@ int main(void) {
                     laserframe = 0;
                 }
             }
-            for (int i = 0; i < lasers.size(); i++) {
+            for (int i = 0; i < (int)lasers.size(); i++) {
                 lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
                 if (lasers[i].rotation == 0.0f) {
                     lasers[i].position.y -= LASERSPEED;
