@@ -9,6 +9,7 @@ using namespace std;
 #define FPS 60
 #define FRAMESPEED 8
 #define SHIPSPEED 1.5f
+#define SHIPROTATION 5.0f
 #define LASERSPEED 2.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
 #define EXPLOSIONCOOLDOWN 8
@@ -27,6 +28,7 @@ Texture explosiontext;
 vector<Object> explosions;
 Texture2D enemys;
 Object enemys1; // Temp enemy for testing
+Object enemys2;
 Texture2D enemym;
 Texture2D enemyl;
 
@@ -48,6 +50,7 @@ int lasery;
 // Explosion animation settings
 bool changeFrame;
 int explosioncounter;
+
 // Rectangle = {xf, yf, widthf, heightf}
 // Vector2 (xf, yf)
 
@@ -66,7 +69,10 @@ void LoadTextures(void) {
 
     enemys = LoadTexture("assets/spritesheets/enemy-small.png");
     enemys1 = makeSmallEnemy(enemys, scale);
+    enemys2 = makeSmallEnemy(enemys, scale);
+    enemys2.position.x = (float(GetScreenWidth() - 20));
     enemies.push_back(enemys1);
+    enemies.push_back(enemys2);
 
     enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
     enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
@@ -88,22 +94,10 @@ void InitGame(void) {
     explosioncounter = 0;
 }
 
-// Constructs a new laser if player can shoot
+// Constructs a new laser if player can shoot.
+// TODO: Make laser shoot from front of ship instead of middle.
 void makeLaser(void) {
-    if (ship.rotation == 0.0f) {
-        laserx = ship.position.x;
-        lasery = ship.position.y - (ship.position.height/2.0f);
-    } else if (ship.rotation == 90.0f) {
-        laserx = ship.position.x + (ship.position.width/2.0f);
-        lasery = ship.position.y;
-    } else if (ship.rotation == 180.0f) {
-        laserx = ship.position.x;
-        lasery = ship.position.y + (ship.position.height/2.0f);
-    } else {
-        laserx = ship.position.x - (ship.position.width/2.0f);
-        lasery = ship.position.y;
-    }
-    Object newLaser = shootLaser(laserx, lasery, ship.rotation, laser.width, laser.height, scale/2.0f);
+    Object newLaser = shootLaser(ship.position.x, ship.position.y, ship.rotation, laser.width, laser.height, scale/2.0f);
     lasers.push_back(newLaser);
 }
 
@@ -142,34 +136,32 @@ int main(void) {
             ship.drawRec.x = ((float)shippng.width/5.0f) * spriteframe;
         }
 
-        // TODO: Need to fix borders during window resizing in main menu.
+        // TODO: Need to fix borders during window resizing in main menu. (depends on itch.io structure)
         // TODO: Allow for rotation speed slider in main menu
         if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
             if (ship.position.x < (GetScreenWidth() - (ship.position.width/2.0f))) {
-            ship.drawRec.y = (shippng.height/2.0f);
-            ship.position.x += SHIPSPEED;
-            ship.rotation = 90.0f;
+                ship.drawRec.y = (shippng.height/2.0f);
+                ship.rotation += SHIPROTATION;
             }
         }
         if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
             if (ship.position.x > (ship.position.width/2.0f)) {
-            ship.drawRec.y = (shippng.height/2.0f);
-            ship.position.x -= SHIPSPEED;
-            ship.rotation = 270.0f;
+                ship.drawRec.y = (shippng.height/2.0f);
+                ship.rotation -= SHIPROTATION;
             }
         }
         if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
             if (ship.position.y > (ship.position.height/2.0f)) {
-                ship.position.y -= SHIPSPEED;
-                ship.rotation = 0.0f;
                 ship.drawRec.y = shippng.height/2.0f;
+                ship.position.x += SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
+                ship.position.y -= SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));
             }
         }
         if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)){
             if (ship.position.y < (GetScreenHeight() - (ship.position.height/2.0f))) {
-                ship.position.y += SHIPSPEED;
-                ship.rotation = 180.0f;
                 ship.drawRec.y = shippng.height/2.0f;
+                ship.position.x -= SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
+                ship.position.y += SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));
             }
         }
 
@@ -195,7 +187,6 @@ int main(void) {
         DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws character
 
         // Controls explosion drawing
-
         if (explosions.size() != 0) {
             if (explosioncounter >= (FPS/EXPLOSIONCOOLDOWN)) {
                 changeFrame = true;
@@ -223,7 +214,13 @@ int main(void) {
         // Controls enemy drawing
         if (enemies.size() != 0) {
             for (int i = 0; i < (int) enemies.size(); i++) {
-                DrawTexturePro(enemys, enemies[i].drawRec, enemies[i].position, enemies[i].origin, 0.0f, RAYWHITE);
+                float relativex = enemies[i].position.x - ship.position.x;
+                if (relativex >= 0.0f) {
+                    enemies[i].rotation = 90.0f;
+                } else {
+                    enemies[i].rotation = 270.0f;
+                }
+                DrawTexturePro(enemys, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
             }
         }
 
@@ -239,15 +236,8 @@ int main(void) {
             }
             for (int i = 0; i < (int)lasers.size(); i++) {
                 lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
-                if (lasers[i].rotation == 0.0f) {
-                    lasers[i].position.y -= LASERSPEED;
-                } else if (lasers[i].rotation == 90.0f) {
-                    lasers[i].position.x += LASERSPEED;
-                } else if (lasers[i].rotation == 180.0f) {
-                    lasers[i].position.y += LASERSPEED;
-                } else {
-                    lasers[i].position.x -= LASERSPEED;
-                }
+                lasers[i].position.x += SHIPSPEED * sinf(lasers[i].rotation * (PI / 180.0f));
+                lasers[i].position.y -= SHIPSPEED * cosf(lasers[i].rotation * (PI / 180.0f));
                 DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
                 
                 bool eraseLaser = false;

@@ -34,8 +34,9 @@ Object shootLaser(float x, float y, float rot, float textwidth, float textheight
 Object makeSmallEnemy(Texture2D enemys, float scale) {
     Object newSmallEnemy;
     newSmallEnemy.drawRec = {0.0f, 0.0f, (float)((enemys.width/2.0f)), (float)enemys.height};
-    newSmallEnemy.position = {20, GetScreenHeight()/2.0f, (float)(enemys.width/5.0f) * scale, (float)(enemys.height/2.0f) * scale};
+    newSmallEnemy.position = {100, GetScreenHeight()/2.0f, (float)(enemys.width/5.0f) * scale, (float)(enemys.height/2.0f) * scale};
     newSmallEnemy.origin = {(float)(newSmallEnemy.position.width/2.0f), (float)(newSmallEnemy.position.height/2.0f)};
+    newSmallEnemy.rotation = 0.0f;
     newSmallEnemy.texture = enemys;
     return newSmallEnemy;
 };
