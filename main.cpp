@@ -5,7 +5,9 @@
 using namespace std;
 #include "objects.h"
 #include <vector>
+#include "screens.h"
 
+// static variables
 #define FPS 60
 #define FRAMESPEED 8
 #define SHIPSPEED 1.5f
@@ -31,9 +33,9 @@ Object enemys1; // Temp enemy for testing
 Object enemys2;
 Texture2D enemym;
 Texture2D enemyl;
+GameScreen currentScreen;
 
-// Game texture scaling
-float scale;
+float scale; // Game texture scaling
 
 // Main character sprite animation settings
 int spriteframe;
@@ -51,65 +53,13 @@ int lasery;
 bool changeFrame;
 int explosioncounter;
 
-// Rectangle = {xf, yf, widthf, heightf}
-// Vector2 (xf, yf)
-
-// Loads all necessary textures for the game
-void LoadTextures(void) {
-    background = LoadTexture("assets/River/background.png");
-    info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
-
-    shippng = LoadTexture("assets/spritesheets/ship.png");
-    scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen.
-    ship = makePlayer(shippng, scale, GetScreenWidth(), GetScreenHeight());
-
-    explosiontext = LoadTexture("assets/spritesheets/explosion.png");
-   
-    laser = LoadTexture("assets/spritesheets/laser-bolts.png");
-
-    enemys = LoadTexture("assets/spritesheets/enemy-small.png");
-    enemys1 = makeSmallEnemy(enemys, scale);
-    enemys2 = makeSmallEnemy(enemys, scale);
-    enemys2.position.x = (float(GetScreenWidth() - 20));
-    enemies.push_back(enemys1);
-    enemies.push_back(enemys2);
-
-    enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
-    enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
-}
-
-// Initializes game variables/settings
-void InitGame(void) {
-    SetTargetFPS(FPS);
-
-    spriteframe = 0;
-    framecounter = 0;
-
-    lasershootcounter = 0;
-    canShoot = true;
-    lasercounter = 0;
-    laserframe = 0;
-
-    changeFrame = false;
-    explosioncounter = 0;
-}
-
-// Constructs a new laser if player can shoot.
-// TODO: Make laser shoot from front of ship instead of middle.
-void makeLaser(void) {
-    Object newLaser = shootLaser(ship.position.x, ship.position.y, ship.rotation, laser.width, laser.height, scale/2.0f);
-    lasers.push_back(newLaser);
-}
-
-// Unloads all load textures, sounds, models, etc.
-void UnloadGame(void) {
-    UnloadTexture(background);
-    UnloadTexture(shippng);
-    UnloadTexture(laser);
-    UnloadTexture(enemys);
-    UnloadTexture(enemym);
-    UnloadTexture(enemyl);
-}
+// Function Declarations
+void UpdateDrawingFrame(void);
+void LoadTextures(void);
+void InitGame(void);
+void MakeLaser(void);
+void UnloadGame(void);
+void ChangeToScreen(GameScreen screen);
 
 int main(void) {
     // Limits FPS to refresh rate of monitor
@@ -121,7 +71,13 @@ int main(void) {
     LoadTextures();
     InitGame();
 
+    currentScreen = LOGO;
+    InitLogoScreen();
+
     while (!WindowShouldClose()) {
+        UpdateDrawingFrame();
+
+        /*
         // Main character sprite animation controller
         framecounter ++;
         explosioncounter ++;
@@ -176,7 +132,7 @@ int main(void) {
             canShoot = false;
             lasershootcounter = 0;
             explosioncounter = 0;
-            makeLaser();
+            MakeLaser();
         }
 
         BeginDrawing();
@@ -275,6 +231,7 @@ int main(void) {
         DrawFPS(10, 10);
 
         EndDrawing();
+        */
     }
 
     UnloadGame();
@@ -282,4 +239,103 @@ int main(void) {
     CloseWindow();
 
     return 0;
+}
+
+//Controls drawing each frame
+void UpdateDrawingFrame(void) {
+    switch(currentScreen) {
+        case LOGO: {
+            UpdateLogoScreen();
+            if (FinishLogoScreen()) {
+                UnloadLogoScreen();
+                ChangeToScreen(MAINMENU);
+            }
+        } break;
+        case MAINMENU: {
+
+        } break;
+        case GAME: {
+
+        }
+    }
+
+     BeginDrawing();
+
+        ClearBackground(RAYWHITE);
+
+        switch(currentScreen) {
+            case LOGO: DrawLogoScreen(); break;
+            case MAINMENU: break;
+            case GAME: break;
+            default: break;
+        }
+
+    EndDrawing();
+}
+
+void changeToScreen(GameScreen screen) {
+    currentScreen = screen;
+
+    switch (currentScreen) {
+        case LOGO: InitLogoScreen(); break;
+        case MAINMENU: break;
+        case GAME: break;
+    }
+}
+
+// Loads all necessary textures for the game
+void LoadTextures(void) {
+    background = LoadTexture("assets/River/background.png");
+    info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
+
+    shippng = LoadTexture("assets/spritesheets/ship.png");
+    scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen.
+    ship = makePlayer(shippng, scale, GetScreenWidth(), GetScreenHeight());
+
+    explosiontext = LoadTexture("assets/spritesheets/explosion.png");
+   
+    laser = LoadTexture("assets/spritesheets/laser-bolts.png");
+
+    enemys = LoadTexture("assets/spritesheets/enemy-small.png");
+    enemys1 = makeSmallEnemy(enemys, scale);
+    enemys2 = makeSmallEnemy(enemys, scale);
+    enemys2.position.x = (float(GetScreenWidth() - 20));
+    enemies.push_back(enemys1);
+    enemies.push_back(enemys2);
+
+    enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
+    enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
+}
+
+// Initializes game variables/settings
+void InitGame(void) {
+    SetTargetFPS(FPS);
+
+    spriteframe = 0;
+    framecounter = 0;
+
+    lasershootcounter = 0;
+    canShoot = true;
+    lasercounter = 0;
+    laserframe = 0;
+
+    changeFrame = false;
+    explosioncounter = 0;
+}
+
+// Constructs a new laser if player can shoot.
+// TODO: Make laser shoot from front of ship instead of middle.
+void MakeLaser(void) {
+    Object newLaser = shootLaser(ship.position.x, ship.position.y, ship.rotation, laser.width, laser.height, scale/2.0f);
+    lasers.push_back(newLaser);
+}
+
+// Unloads all load textures, sounds, models, etc.
+void UnloadGame(void) {
+    UnloadTexture(background);
+    UnloadTexture(shippng);
+    UnloadTexture(laser);
+    UnloadTexture(enemys);
+    UnloadTexture(enemym);
+    UnloadTexture(enemyl);
 }
