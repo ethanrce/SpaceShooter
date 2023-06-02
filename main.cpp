@@ -248,11 +248,18 @@ void UpdateDrawingFrame(void) {
             UpdateLogoScreen();
             if (FinishLogoScreen()) {
                 UnloadLogoScreen();
-                ChangeToScreen(MAINMENU);
+                currentScreen = MAINMENU;
+                InitMainMenu(background);
             }
         } break;
         case MAINMENU: {
-
+            UpdateMainMenu();
+            if (FinishMainMenu())
+            {
+                UnloadMainMenu();
+                currentScreen = GAME;
+                //InitGame();
+            }
         } break;
         case GAME: {
 
@@ -265,7 +272,7 @@ void UpdateDrawingFrame(void) {
 
         switch(currentScreen) {
             case LOGO: DrawLogoScreen(); break;
-            case MAINMENU: break;
+            case MAINMENU: DrawMainMenu(); break;
             case GAME: break;
             default: break;
         }
@@ -273,19 +280,15 @@ void UpdateDrawingFrame(void) {
     EndDrawing();
 }
 
-void changeToScreen(GameScreen screen) {
-    currentScreen = screen;
-
-    switch (currentScreen) {
-        case LOGO: InitLogoScreen(); break;
-        case MAINMENU: break;
-        case GAME: break;
-    }
-}
-
 // Loads all necessary textures for the game
 void LoadTextures(void) {
-    background = LoadTexture("assets/River/background.png");
+    float backgroundnum = RandomNum(0, 1);
+    if (backgroundnum == 0) {
+        background = LoadTexture("assets/River/background.png");        
+    } else {
+        background = LoadTexture("assets/Desert/desert-background.png");
+    }
+
     info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
 
     shippng = LoadTexture("assets/spritesheets/ship.png");
