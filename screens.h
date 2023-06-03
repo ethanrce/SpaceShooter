@@ -4,6 +4,16 @@
 enum GameScreen {LOGO, MAINMENU, GAME};
 
 //----------------------------------------------------------------------------------
+// Main Functions Declaration
+//----------------------------------------------------------------------------------
+void UpdateDrawingFrame(void);
+void LoadTextures(void);
+void InitGame(void);
+void MakeLaser(void);
+void UnloadGame(void);
+void ChangeToScreen(GameScreen screen);
+
+//----------------------------------------------------------------------------------
 // Logo Screen Functions Declaration
 //----------------------------------------------------------------------------------
 void InitLogoScreen(void);

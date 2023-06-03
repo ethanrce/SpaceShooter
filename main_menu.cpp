@@ -3,7 +3,8 @@
 #include "screens.h"
 #include <iostream>
 using namespace std;
-
+#include "objects.h"
+ 
 Texture2D MMbackground;
 NPatchInfo backgroundinfo;
 Texture2D GameLogo;
