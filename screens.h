@@ -26,10 +26,10 @@ int FinishLogoScreen(void);
 // MainMenu Screen Functions Declaration
 //----------------------------------------------------------------------------------
 void InitMainMenu(Texture2D background);
-void UpdateMainMenu(void);
+void UpdateMainMenu(int btnState);
 void DrawMainMenu(void);
-void UnloadMainMenu(void);
+void UnloadMainMenu();
 int FinishMainMenu(void);
-
+bool CheckButtonHover(void);
 
 #endif

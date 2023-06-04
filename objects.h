@@ -26,6 +26,8 @@ Object shootLaser(float x, float y, float rot, float textwidth, float textheight
 Object makeSmallEnemy(Texture2D enemys, float scale);
 Object makeMediumEnemy(Texture2D enemym, float scale);
 Object makeLargeEnemy(Texture2D enemyl, float scale);
+Object makeLogo(Texture2D logopng);
+Object makeMainMenuButton(Texture2D buttonpng, float x, float y);
 Object explodeanim(Texture2D explosion, Rectangle position, float scale);
 
 #endif

@@ -53,6 +53,10 @@ int lasery;
 bool changeFrame;
 int explosioncounter;
 
+// MainMenu button settings
+bool btnAction;
+int btnState; 
+
 int main(void) {
     // Limits FPS to refresh rate of monitor
     //SetWindowState(FLAG_VSYNC_HINT);
@@ -245,7 +249,28 @@ void UpdateDrawingFrame(void) {
             }
         } break;
         case MAINMENU: {
-            UpdateMainMenu();
+            btnAction = false;
+            // Check button state
+            if (CheckButtonHover()) {
+                 if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+                    btnState = 2;
+                 } else {
+                    btnState = 1;
+                 }
+                 if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+                    btnAction = true;
+                 } 
+            } else {
+                btnState = 0;
+            }
+
+            if (btnAction)
+            {
+                cout << "Clicked" << endl;
+                //    PlaySound(fxButton);
+                // TODO: Any desired action
+            }
+            UpdateMainMenu(btnState);
             if (FinishMainMenu())
             {
                 UnloadMainMenu();
@@ -280,7 +305,7 @@ void LoadTextures(void) {
     } else {
         background = LoadTexture("assets/Desert/desert-background.png");
     }
-
+/*
     info = {(Rectangle) {0.0f, 0.0f, (float) background.width, (float) background.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
 
     shippng = LoadTexture("assets/spritesheets/ship.png");
@@ -300,12 +325,13 @@ void LoadTextures(void) {
 
     enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
     enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
+    */
 }
 
 // Initializes game variables/settings
 void InitGame(void) {
     SetTargetFPS(FPS);
-
+/*
     spriteframe = 0;
     framecounter = 0;
 
@@ -316,16 +342,21 @@ void InitGame(void) {
 
     changeFrame = false;
     explosioncounter = 0;
+*/
+    btnAction = false;
+    btnState = 0;
 }
 
 // Unloads all load textures, sounds, models, etc.
 void UnloadGame(void) {
+    /*
     UnloadTexture(background);
     UnloadTexture(shippng);
     UnloadTexture(laser);
     UnloadTexture(enemys);
     UnloadTexture(enemym);
     UnloadTexture(enemyl);
+    */
 }
 
 float RandomNum(int min, int max) {
@@ -389,6 +420,27 @@ Object makeLargeEnemy(Texture2D enemyl, float scale) {
     newLargeEnemy.rotation = 0.0f;
     newLargeEnemy.texture = enemyl;
     return newLargeEnemy;
+}
+
+Object makeLogo(Texture2D logopng) {
+    Object newLogo;
+    newLogo.drawRec = {0.0f, 0.0f, (float)(logopng.width), (float)(logopng.height)};
+    newLogo.position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/6.0f), (float)(logopng.width * 0.8), (float)(logopng.height * 0.7)};
+    newLogo.origin = {(float)(newLogo.position.width/2.0f), (float)(newLogo.position.height/2.0f)};
+    newLogo.rotation = 0.0f;
+    return newLogo;
+}
+
+//TODO: Center play button 
+Object makeMainMenuButton(Texture2D buttonpng, float x, float y) {
+    Object newButton;
+    newButton.drawRec = {0.0f, 0.0f, (float)(buttonpng.width), (float)(buttonpng.height/3.0f)};
+    newButton.position = {(float)(x - (buttonpng.width/2.0f)), y, (float)(buttonpng.width * 1.5f), (float)(buttonpng.height * 0.5f)}; 
+    newButton.origin = {0.0f, 0.0f};
+    cout << GetScreenWidth()/2.0f << " " << newButton.position.x << endl;
+    newButton.rotation = 0.0f;
+    newButton.texture = buttonpng;
+    return newButton;
 }
 
 Object explodeanim(Texture2D explosion, Rectangle position, float scale) {

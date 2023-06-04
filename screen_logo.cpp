@@ -171,7 +171,6 @@ void UnloadLogoScreen(void)
     // Unload LOGO screen variables here!
 }
 
-// Logo Screen should finish?
 int FinishLogoScreen(void)
 {
     return finishScreen;
