@@ -66,10 +66,8 @@ int main(void) {
 
     LoadTextures();
     InitGame();
-
-    currentScreen = LOGO;
-    InitLogoScreen();
-
+    //InitLogoScreen();
+    InitMainMenu(background);
     while (!WindowShouldClose()) {
         UpdateDrawingFrame();
 
@@ -284,7 +282,6 @@ void UpdateDrawingFrame(void) {
     }
 
      BeginDrawing();
-
         ClearBackground(RAYWHITE);
 
         switch(currentScreen) {
@@ -331,6 +328,7 @@ void LoadTextures(void) {
 // Initializes game variables/settings
 void InitGame(void) {
     SetTargetFPS(FPS);
+    currentScreen = MAINMENU;
 /*
     spriteframe = 0;
     framecounter = 0;
@@ -435,9 +433,8 @@ Object makeLogo(Texture2D logopng) {
 Object makeMainMenuButton(Texture2D buttonpng, float x, float y) {
     Object newButton;
     newButton.drawRec = {0.0f, 0.0f, (float)(buttonpng.width), (float)(buttonpng.height/3.0f)};
-    newButton.position = {(float)(x - (buttonpng.width/2.0f)), y, (float)(buttonpng.width * 1.5f), (float)(buttonpng.height * 0.5f)}; 
+    newButton.position = {(float)(x - (((buttonpng.width * 1.5f)/2.0f) - 21)), y, (float)(buttonpng.width * 1.5f), (float)(buttonpng.height * 0.5f)}; // 21 is based on the # of pixels between the actual button and edge of image after scaled
     newButton.origin = {0.0f, 0.0f};
-    cout << GetScreenWidth()/2.0f << " " << newButton.position.x << endl;
     newButton.rotation = 0.0f;
     newButton.texture = buttonpng;
     return newButton;

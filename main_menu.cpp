@@ -21,7 +21,7 @@ void InitMainMenu(Texture2D backgroundpng) {
     Logo = makeLogo(GameLogo);
 
     PlayButton = LoadTexture("assets/MainMenu/PlayButton.png");
-    Play = makeMainMenuButton(PlayButton, (float)((GetScreenWidth()/2.0f)), (float)((GetScreenHeight()/2.0f)));
+    Play = makeMainMenuButton(PlayButton, (float)((GetScreenWidth()/2.0f)), (float)((GetScreenHeight()/4.0f)));
 
     mousePoint = {0.0f, 0.0f};
 }
