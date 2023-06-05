@@ -60,7 +60,7 @@ int btnState;
 int main(void) {
     // Limits FPS to refresh rate of monitor
     //SetWindowState(FLAG_VSYNC_HINT);
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
     InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
 
@@ -390,34 +390,14 @@ Object shootLaser(float x, float y, float rot, float textwidth, float textheight
     return newLaser;
 }
 
-Object makeSmallEnemy(Texture2D enemys, float scale) {
-    Object newSmallEnemy;
-    newSmallEnemy.drawRec = {0.0f, 0.0f, (float)((enemys.width/2.0f)), (float)enemys.height};
-    newSmallEnemy.position = {100, GetScreenHeight()/2.0f, (float)(enemys.width/5.0f) * scale, (float)(enemys.height/2.0f) * scale};
-    newSmallEnemy.origin = {(float)(newSmallEnemy.position.width/2.0f), (float)(newSmallEnemy.position.height/2.0f)};
-    newSmallEnemy.rotation = 0.0f;
-    newSmallEnemy.texture = enemys;
-    return newSmallEnemy;
-}
-
-Object makeMediumEnemy(Texture2D enemym, float scale) {
-    Object newMediumEnemy;
-    newMediumEnemy.drawRec = {0.0f, 0.0f, (float)((enemym.width/2.0f)), (float)enemym.height};
-    newMediumEnemy.position = {100, GetScreenHeight()/2.0f, (float)(enemym.width/5.0f) * scale, (float)(enemym.height/2.0f) * scale};
-    newMediumEnemy.origin = {(float)(newMediumEnemy.position.width/2.0f), (float)(newMediumEnemy.position.height/2.0f)};
-    newMediumEnemy.rotation = 0.0f;
-    newMediumEnemy.texture = enemym;
-    return newMediumEnemy;
-}
-
-Object makeLargeEnemy(Texture2D enemyl, float scale) {
-    Object newLargeEnemy;
-    newLargeEnemy.drawRec = {0.0f, 0.0f, (float)((enemyl.width/2.0f)), (float)enemyl.height};
-    newLargeEnemy.position = {100, GetScreenHeight()/2.0f, (float)(enemyl.width/5.0f) * scale, (float)(enemyl.height/2.0f) * scale};
-    newLargeEnemy.origin = {(float)(newLargeEnemy.position.width/2.0f), (float)(newLargeEnemy.position.height/2.0f)};
-    newLargeEnemy.rotation = 0.0f;
-    newLargeEnemy.texture = enemyl;
-    return newLargeEnemy;
+Object makeEnemy(Texture2D enemy, float scale, float x, float y) {
+    Object newEnemy;
+    newEnemy.drawRec = {0.0f, 0.0f, (float)((enemys.width/2.0f)), (float)enemys.height};
+    newEnemy.position = {x, y, (float)(enemy.width * scale), (float)(enemys.height * scale)};
+    newEnemy.origin = {(float)(newEnemy.position.width/2.0f), (float)(newEnemy.position.height/2.0f)};
+    newEnemy.rotation = 0.0f;
+    newEnemy.texture = enemy;
+    return newEnemy;
 }
 
 Object makeLogo(Texture2D logopng) {
