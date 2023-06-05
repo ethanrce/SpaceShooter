@@ -21,6 +21,7 @@ float RandomNum(int min, int max);
 //----------------------------------------------------------------------------------
 // Object Functions Declarations
 //----------------------------------------------------------------------------------
+void MakeLaser(void);
 Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight);
 Object shootLaser(float x, float y, float rot, float textwidth, float textheight, float scale);
 Object makeEnemy(Texture2D enemy, float scale, float x, float y);

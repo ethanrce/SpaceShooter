@@ -4,19 +4,14 @@
 #include <iostream>
 using namespace std;
 #include "objects.h"
- 
-Texture2D MMbackground;
-NPatchInfo backgroundinfo;
+
 Texture2D GameLogo;
 Object Logo;
 Texture2D PlayButton;
 Object Play;
 Vector2 mousePoint; // Gets mouse's position for button collision
 
-void InitMainMenu(Texture2D backgroundpng) {
-    MMbackground = backgroundpng;
-    backgroundinfo = {(Rectangle) {0.0f, 0.0f, (float) MMbackground.width, (float) MMbackground.height}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
-    
+void InitMainMenu(void) {
     GameLogo = LoadTexture("assets/MainMenu/GameLogo.png");
     Logo = makeLogo(GameLogo);
 
@@ -31,14 +26,12 @@ void UpdateMainMenu(int btnState) {
 }
 
 void DrawMainMenu(void) {
-    DrawTextureNPatch(MMbackground, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
     DrawTexturePro(GameLogo, Logo.drawRec, Logo.position, Logo.origin, Logo.rotation, RAYWHITE);
     DrawTexturePro(PlayButton, Play.drawRec, Play.position, Play.origin, Play.rotation, RAYWHITE);
-    //TODO: Draw settings button
+    //TODO: Draw fullscreen button
 }
 
 void UnloadMainMenu(void) {
-    UnloadTexture(MMbackground);
     UnloadTexture(GameLogo);
     UnloadTexture(PlayButton);
 }
