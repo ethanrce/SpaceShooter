@@ -1,7 +1,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <iostream>
-using namespace std;
+using std::cout;
 #include "objects.h"
 #include "screens.h"
 
@@ -20,8 +20,8 @@ int main(void) {
     InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
     //InitWindow(0, 0, "SpaceShooter");
     InitGameScreen();
-    //SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
-    //ToggleFullscreen();
+    SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
+    ToggleFullscreen();
     
 
     switch(currentScreen) {

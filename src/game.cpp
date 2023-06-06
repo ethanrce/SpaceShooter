@@ -2,6 +2,7 @@
 #include <raymath.h>
 #include <fstream>
 #include <iostream>
+using std::cout;
 #include "objects.h"
 #include <vector>
 #include "screens.h"

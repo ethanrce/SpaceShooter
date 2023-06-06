@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include "screens.h"
 #include <iostream>
+using std::cout;
 #include "objects.h"
 
 Texture2D GameLogo;

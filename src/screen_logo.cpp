@@ -26,6 +26,7 @@
 #include "raylib.h"
 #include "screens.h"
 #include <iostream>
+using std::cout;
 
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
