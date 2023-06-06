@@ -25,8 +25,8 @@ void MakeLaser(void);
 Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight);
 Object shootLaser(float x, float y, float rot, float textwidth, float textheight, float scale);
 Object makeEnemy(Texture2D enemy, float scale, float x, float y);
-Object makeLogo(Texture2D logopng);
-Object makeMainMenuButton(Texture2D buttonpng, float x, float y);
+Object makeLogo(Texture2D logopng, float scale);
+Object makeMainMenuButton(Texture2D buttonpng, float x, float y, float scale);
 Object explodeanim(Texture2D explosion, Rectangle position, float scale);
 
 #endif

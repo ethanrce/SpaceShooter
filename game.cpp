@@ -2,15 +2,15 @@
 #include <raymath.h>
 #include <fstream>
 #include <iostream>
-using namespace std;
 #include "objects.h"
 #include <vector>
 #include "screens.h"
 
 // static variables
 #define FRAMESPEED 8
+//TODO: Speed & rotation should change depending on the window size.
 #define SHIPSPEED 1.5f
-#define SHIPROTATION 5.0f
+#define SHIPROTATION 3.0f
 #define LASERSPEED 2.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
 #define EXPLOSIONCOOLDOWN 8
@@ -67,7 +67,8 @@ void InitGame(void) {
 
 void LoadTextures(void) {
     shippng = LoadTexture("assets/spritesheets/ship.png"); 
-    scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen.
+    // TODO: Need to change scale after fullscreen is enabled/disabled.
+    scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen. 
     ship = makePlayer(shippng, scale, GetScreenWidth(), GetScreenHeight());
 
     explosiontext = LoadTexture("assets/spritesheets/explosion.png");
@@ -77,7 +78,6 @@ void LoadTextures(void) {
     enemys = LoadTexture("assets/spritesheets/enemy-small.png");
     enemys1 = makeEnemy(enemys, scale, 100.0f, GetScreenHeight()/2.0f);
     enemys2 = makeEnemy(enemys, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f);
-    enemys2.position.x = (float(GetScreenWidth() - 20));
     enemies.push_back(enemys1);
     enemies.push_back(enemys2);
 
@@ -182,7 +182,7 @@ void DrawGame(void) {
             } else {
                 enemies[i].rotation = 270.0f;
             }
-            DrawTexturePro(enemys, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
+            DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
         }
     }
 

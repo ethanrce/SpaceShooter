@@ -25,10 +25,10 @@ int FinishLogoScreen(void);
 // MainMenu Screen Functions Declaration
 //----------------------------------------------------------------------------------
 void InitMainMenu(void);
-void UpdateMainMenu(int btnState);
+void UpdateMainMenu(void);
 void DrawMainMenu(void);
 void UnloadMainMenu();
-int FinishMainMenu(void);
+bool FinishMainMenu(void);
 bool CheckButtonHover(void);
 
 //----------------------------------------------------------------------------------

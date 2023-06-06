@@ -5,26 +5,24 @@ using namespace std;
 #include "objects.h"
 #include "screens.h"
 
-#define SCREENHEIGHT 800
-#define SCREENWIDTH 800
-#define FPS 60
+#define SCREENHEIGHT 1200
+#define SCREENWIDTH 1200
 
 GameScreen currentScreen;
 Texture2D background;
 NPatchInfo backgroundinfo;
-
-// MainMenu button settings
-bool btnAction;
-int btnState; 
+int display;
+int fps;
 
 int main(void) {
-    // Limits FPS to refresh rate of monitor
-    //SetWindowState(FLAG_VSYNC_HINT);
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    //SetConfigFlags(FLAG_WINDOW_RESIZABLE); // Allows window to be resizable by mouse dragging
 
     InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
-
+    //InitWindow(0, 0, "SpaceShooter");
     InitGameScreen();
+    //SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
+    //ToggleFullscreen();
+    
 
     switch(currentScreen) {
         case LOGO: {
@@ -45,6 +43,7 @@ int main(void) {
     }
 
     UnloadGame();
+    UnloadGameScreen();
 
     CloseWindow();
 
@@ -64,29 +63,7 @@ void UpdateDrawingFrame(void) {
             }
         } break;
         case MAINMENU: {
-            btnAction = false;
-            // Check button state
-            if (CheckButtonHover()) {
-                 if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-                    btnState = 2;
-                 } else {
-                    btnState = 1;
-                 }
-                 if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-                    btnAction = true;
-                 } 
-            } else {
-                btnState = 0;
-            }
-
-            if (btnAction)
-            {
-                UnloadMainMenu();
-                currentScreen = GAME;
-                InitGame();
-                //    PlaySound(fxButton);
-            }
-            UpdateMainMenu(btnState);
+            UpdateMainMenu();
             if (FinishMainMenu())
             {
                 UnloadMainMenu();
@@ -101,7 +78,12 @@ void UpdateDrawingFrame(void) {
 
      BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawTextureNPatch(background, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
+        if (IsWindowFullscreen()) {
+            DrawTextureNPatch(background, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetMonitorHeight(display)}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
+        } else {
+            DrawTextureNPatch(background, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
+        }
+        
         switch(currentScreen) {
             case LOGO: DrawLogoScreen(); break;
             case MAINMENU: DrawMainMenu(); break;
@@ -125,11 +107,10 @@ void LoadBackground(void) {
 
 // Initializes game variables/settings
 void InitGameScreen(void) {
-    SetTargetFPS(FPS);
-    currentScreen = LOGO;
-
-    btnAction = false;
-    btnState = 0;
+    currentScreen = MAINMENU;
+    display = GetCurrentMonitor();
+    fps = GetMonitorRefreshRate(display);
+    SetTargetFPS(fps);
 }
 
 // Unloads all load textures, sounds, models, etc.
@@ -166,27 +147,28 @@ Object shootLaser(float x, float y, float rot, float textwidth, float textheight
 Object makeEnemy(Texture2D enemy, float scale, float x, float y) {
     Object newEnemy;
     newEnemy.drawRec = {0.0f, 0.0f, (float)((enemy.width/2.0f)), (float)enemy.height};
-    newEnemy.position = {x, y, (float)(enemy.width * scale), (float)(enemy.height * scale)};
+    newEnemy.position = {x, y, (float)((enemy.width/5.0f) * scale), (float)((enemy.height/2.0f) * scale)};
     newEnemy.origin = {(float)(newEnemy.position.width/2.0f), (float)(newEnemy.position.height/2.0f)};
     newEnemy.rotation = 0.0f;
     newEnemy.texture = enemy;
     return newEnemy;
 }
 
-Object makeLogo(Texture2D logopng) {
+Object makeLogo(Texture2D logopng, float scale) {
     Object newLogo;
     newLogo.drawRec = {0.0f, 0.0f, (float)(logopng.width), (float)(logopng.height)};
-    newLogo.position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/6.0f), (float)(logopng.width * 0.8), (float)(logopng.height * 0.7)};
+    newLogo.position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/6.0f), (float)((logopng.width * 0.8) * scale), (float)((logopng.height * 0.7) * scale)};
     newLogo.origin = {(float)(newLogo.position.width/2.0f), (float)(newLogo.position.height/2.0f)};
     newLogo.rotation = 0.0f;
     return newLogo;
 }
 
 //TODO: Center play button 
-Object makeMainMenuButton(Texture2D buttonpng, float x, float y) {
+Object makeMainMenuButton(Texture2D buttonpng, float x, float y, float scale) {
     Object newButton;
+    float width = (buttonpng.width * 1.5f) * scale;
     newButton.drawRec = {0.0f, 0.0f, (float)(buttonpng.width), (float)(buttonpng.height/3.0f)};
-    newButton.position = {(float)(x - (((buttonpng.width * 1.5f)/2.0f) - 21)), y, (float)(buttonpng.width * 1.5f), (float)(buttonpng.height * 0.5f)}; // 21 is based on the # of pixels between the actual button and edge of image after scaled
+    newButton.position = {(float)(x - ((width/2.0f) - (width/16.0f))), y, (float)(width), (float)((buttonpng.height * 0.5f) * scale)}; // The width is divided by 16 to subtract the # of pixels between the actual button and edge of image after the width is scaled
     newButton.origin = {0.0f, 0.0f};
     newButton.rotation = 0.0f;
     newButton.texture = buttonpng;
