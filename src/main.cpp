@@ -107,7 +107,7 @@ void LoadBackground(void) {
 
 // Initializes game variables/settings
 void InitGameScreen(void) {
-    currentScreen = MAINMENU;
+    currentScreen = GAME;
     display2 = GetCurrentMonitor();
     fps2 = GetMonitorRefreshRate(display2);
     SetTargetFPS(fps2);
@@ -139,13 +139,15 @@ Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight
 Object shootLaser(float x, float y, float rot, float textwidth, float textheight, float scale, const char *obj) {
     Object newLaser;
     if (std::string(obj) == "player") {
-        newLaser.drawRec = {0.0f, textheight/2.0f, textwidth/2.0f, textheight/2.0f}; 
+        newLaser.drawRec = {0.0f, textheight/2.0f, textwidth/2.0f, textheight/2.0f};
+        newLaser.rotation = rot; 
     } else {
         newLaser.drawRec = {0.0f, 0.0f, textwidth/2.0f, textheight/2.0f}; //textheight/2.0f
+        newLaser.rotation = (rot + 180.0f);
     }
     newLaser.position = {x, y, textwidth/2.0f * scale, textheight/2.0f * scale};
     newLaser.origin = {textwidth/2.0f, textheight/2.0f};
-    newLaser.rotation = rot;
+  //  newLaser.rotation = rot;
     newLaser.name = obj;
     return newLaser;
 }
@@ -159,6 +161,7 @@ Object makeEnemy(Texture2D enemy, float scale, float x, float y, const char *obj
     newEnemy.texture = enemy;
     newEnemy.frame = 0;
     newEnemy.name = obj;
+    newEnemy.wpindex = 0;
     return newEnemy;
 }
 
@@ -193,4 +196,11 @@ Object explodeanim(Texture2D explosion, Rectangle position, float scale) {
     newExplosion.rotation = 0.0f;
     newExplosion.frame = 0;
     return newExplosion;
+}
+
+Waypoint makeWaypoint(int x, int y) {
+    Waypoint newwp;
+    newwp.x = x;
+    newwp.y = y;
+    return newwp;
 }

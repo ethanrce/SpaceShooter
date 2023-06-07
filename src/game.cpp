@@ -10,11 +10,12 @@ using std::cout;
 // static variables
 #define FRAMESPEED 8
 //TODO: Speed & rotation should change depending on the window size.
-#define SHIPSPEED 2.5f
+#define SHIPSPEED 3.5f
 #define SHIPROTATION 3.0f
 #define LASERSPEED 5.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
-#define ENEMYSSPEED 1.5f
+#define ENEMYSSPEED 1.0f
+#define ENEMYSROTATION 1.5f
 #define ENEMYLASERCOOLDOWN 2.0f // Seconds between enemy laser shots
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
@@ -28,10 +29,14 @@ vector<Object> enemies;
 Texture explosiontext;
 vector<Object> explosions;
 Texture2D enemys;
-Object enemys1; // Temp enemy for testing
+Object enemys1; // Temp enemies for testing
 Object enemys2;
 Texture2D enemym;
 Texture2D enemyl;
+vector<Waypoint> waypoints;
+Waypoint wp1; // Temp waypoints for testing
+Waypoint wp2;
+GamePhase CurrentPhase;
 
 float scale; // Game texture scaling
 
@@ -62,6 +67,19 @@ void InitGame(void) {
 
     display = GetCurrentMonitor();
     fps = GetMonitorRefreshRate(display);
+
+    enemys1 = makeEnemy(enemys, scale, 100.0f, GetScreenHeight()/2.0f, "enemy");
+    enemys2 = makeEnemy(enemys, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f, "enemy");
+    enemys2.wpindex = 1;
+    enemies.push_back(enemys1);
+    enemies.push_back(enemys2);
+
+    wp1 = makeWaypoint(GetScreenWidth()/2.0f, 100);
+    wp2 = makeWaypoint(GetScreenWidth()/2.0f, GetScreenHeight() - 100);
+    waypoints.push_back(wp1);
+    waypoints.push_back(wp2);
+
+    CurrentPhase = TRANSITION;
 }
 
 void LoadTextures(void) {
@@ -75,71 +93,12 @@ void LoadTextures(void) {
     laser = LoadTexture("assets/spritesheets/laser-bolts.png");
 
     enemys = LoadTexture("assets/spritesheets/enemy-small.png");
-    enemys1 = makeEnemy(enemys, scale, 100.0f, GetScreenHeight()/2.0f, "enemy");
-    enemys2 = makeEnemy(enemys, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f, "enemy");
-    enemies.push_back(enemys1);
-    enemies.push_back(enemys2);
-
     enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
     enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
 }
 
 void UpdateGame(void) {
-    // Controls object animations
-    framecounter ++;
-    ship.drawRec.y = 0.0f;
-    if (framecounter >= (fps/FRAMESPEED)) {
-        spriteframe ++;
-        framecounter = 0;
-
-        // Player
-        if (spriteframe >= 5) {
-            spriteframe = 0;
-        }
-        ship.drawRec.x = ((float)shippng.width/5.0f) * spriteframe;
-
-        // Enemies
-        if (enemies.size() > 0) {
-            enemyframe ++;
-            if (enemyframe >= 2) {
-                enemyframe = 0;
-            }
-            for (int i = 0; i < (int) enemies.size(); i++) {
-                enemies[i].drawRec.x = ((float)(enemies[i].texture.width/2.0f) * enemyframe);
-            }
-        } else {
-            enemyframe = 0;
-        }
-
-        // Lasers
-        if (lasers.size() > 0) {
-            laserframe ++;
-            if (laserframe >= 2) {
-                laserframe = 0;
-            }
-            for (int i = 0; i < (int) lasers.size(); i++) {
-                lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
-            }
-        } else {
-            laserframe = 0;
-        }
-        
-        // Explosions
-        if (explosions.size() > 0) {
-            for (int i = 0; i < (int) explosions.size(); i++) {
-                explosions[i].frame ++;
-                explosions[i].drawRec.x = ((float)((explosiontext.width/5.0f) * explosions[i].frame));
-                if (explosions[i].frame >= 5) {
-                    explosions.erase(explosions.begin() + i);
-                    if (explosions.size() != 0) {
-                        i --;
-                    } 
-                }
-            }
-        }
-    }
-    
-
+    Animations(); 
     // TODO: Need to fix borders during window resizing in main menu. (depends on itch.io structure)
     // TODO: Allow for rotation speed slider in main menu
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
@@ -205,10 +164,9 @@ void UpdateGame(void) {
             MakeLaser(enemies[i]);
             enemies[i].frame = 0;
         }
-        float axis = RandomNum(0,1);
-        cout << axis << endl;
-        MoveRandomly(i, axis);
-        cout << "Finish" << endl;
+        MoveEnemy(i);
+        RotateEnemy(i);  
+        cout << "Enemy" << i << ": " << enemies[i].rotation << endl;   
     }
 }
 
@@ -284,33 +242,95 @@ bool checkCollisions(int index) {
     return false;
 }
 
-void MoveRandomly(int index, float axis) {
-    if (axis == 0.0f) {
-        float direction = RandomNum(0, 1); 
-        float newx;
-        if (direction == 0) {
-            newx = (-1 * ENEMYSSPEED);
+void Animations(void) {
+    // Controls object animations
+    framecounter ++;
+    ship.drawRec.y = 0.0f;
+    if (framecounter >= (fps/FRAMESPEED)) {
+        spriteframe ++;
+        framecounter = 0;
+
+        // Player
+        if (spriteframe >= 5) {
+            spriteframe = 0;
+        }
+        ship.drawRec.x = ((float)shippng.width/5.0f) * spriteframe;
+
+        // Enemies
+        if (enemies.size() > 0) {
+            enemyframe ++;
+            if (enemyframe >= 2) {
+                enemyframe = 0;
+            }
+            for (int i = 0; i < (int) enemies.size(); i++) {
+                enemies[i].drawRec.x = ((float)(enemies[i].texture.width/2.0f) * enemyframe);
+            }
         } else {
-            newx = ENEMYSSPEED;
+            enemyframe = 0;
         }
-        if ((enemies[index].position.x + newx) > (GetScreenWidth() - (enemies[index].position.width/2.0f)) || (enemies[index].position.x + newx) < (enemies[index].position.width/2.0f)) {
-            cout << "False" << endl;
-            MoveRandomly(index, axis);
-        }
-       
-        enemies[index].position.x += newx;
-    } else {
-        float direction = RandomNum(0, 1);
-        float newy;
-        if (direction == 0) {
-            newy = (-1 * ENEMYSSPEED);
+
+        // Lasers
+        if (lasers.size() > 0) {
+            laserframe ++;
+            if (laserframe >= 2) {
+                laserframe = 0;
+            }
+            for (int i = 0; i < (int) lasers.size(); i++) {
+                lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
+            }
         } else {
-            newy = ENEMYSSPEED;
+            laserframe = 0;
         }
-        if ((enemies[index].position.y + newy) < (enemies[index].position.height/2.0f) || (enemies[index].position.y + newy) > (GetScreenHeight() - (enemies[index].position.height/2.0f))) {
-            cout << "False" << endl;
-            MoveRandomly(index, axis);
+        
+        // Explosions
+        if (explosions.size() > 0) {
+            for (int i = 0; i < (int) explosions.size(); i++) {
+                explosions[i].frame ++;
+                explosions[i].drawRec.x = ((float)((explosiontext.width/5.0f) * explosions[i].frame));
+                if (explosions[i].frame >= 5) {
+                    explosions.erase(explosions.begin() + i);
+                    if (explosions.size() != 0) {
+                        i --;
+                    } 
+                }
+            }
         }
-        enemies[index].position.y += newy;
     }
+}
+
+void MoveEnemy(int index) {
+    Waypoint currwp = waypoints[enemies[index].wpindex];
+
+    if (enemies[index].position.x < currwp.x) {
+        enemies[index].position.x += ENEMYSSPEED;
+    } else if (enemies[index].position.x > currwp.x) {
+        enemies[index].position.x -= ENEMYSSPEED;
+    }
+
+    if (enemies[index].position.y < currwp.y) {
+        enemies[index].position.y += ENEMYSSPEED;
+    } else if (enemies[index].position.y > currwp.y) {
+        enemies[index].position.y -= ENEMYSSPEED;
+    }
+
+    if (enemies[index].position.x == currwp.x && enemies[index].position.y == currwp.y) {
+        enemies[index].wpindex ++;
+        if (enemies[index].wpindex >= (int) waypoints.size()) {
+            enemies[index].wpindex = 0;
+        }
+    }
+}
+
+void RotateEnemy(int index) {
+    float rotationAngle = ((std::atan2(ship.position.y - enemies[index].position.y, ship.position.x - enemies[index].position.x) * 180.0)/PI);
+        float rotationDiff = rotationAngle - (enemies[index].rotation + 90.0f);
+         while (rotationDiff > 180.0f) {
+            rotationDiff -= 360.0f;
+         }  
+        while (rotationDiff < -180.0f) {
+            rotationDiff += 360.0f;
+        }
+        float maxRotationChange = ENEMYSROTATION;
+        float rotationChange = Clamp(rotationDiff, -maxRotationChange, maxRotationChange);
+        enemies[index].rotation += rotationChange;
 }

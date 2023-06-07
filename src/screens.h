@@ -2,7 +2,7 @@
 #define SCREENS_H
 
 enum GameScreen {LOGO, MAINMENU, GAME};
-
+enum GamePhase {TRANSITION, INWAVE};
 //----------------------------------------------------------------------------------
 // Main Functions Declaration
 //----------------------------------------------------------------------------------
