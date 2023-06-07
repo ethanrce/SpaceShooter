@@ -14,6 +14,8 @@ bool btnAction;
 int btnState;
 bool EndMainMenu; 
 float MMscale; //Logos should always be 
+Font setback;
+const char *message;
 
 void InitMainMenu(void) {
     // TODO: Need to change scale after fullscreen is enabled/disabled
@@ -30,7 +32,8 @@ void InitMainMenu(void) {
     btnState = 0;
     
     EndMainMenu = false;
-    
+    setback = LoadFont("assets/Fonts/setback.png");
+    message = "created by @Ethom";
 }
 
 void UpdateMainMenu(void) {
@@ -60,12 +63,15 @@ void UpdateMainMenu(void) {
 void DrawMainMenu(void) {
     DrawTexturePro(GameLogo, Logo.drawRec, Logo.position, Logo.origin, Logo.rotation, RAYWHITE);
     DrawTexturePro(PlayButton, Play.drawRec, Play.position, Play.origin, Play.rotation, RAYWHITE);
-    //TODO: Draw fullscreen button
+    Vector2 textSize = MeasureTextEx(setback, message, (float)(setback.baseSize * MMscale * 3.0f), (float) 4.0f);
+    DrawTextEx(setback, message, (Vector2) {((GetScreenWidth()/2.0f) - (textSize.x/2.0f)), ((Logo.position.y + Play.position.y)/2.0f)}, (float)(setback.baseSize * MMscale * 3.0f), (float) 4.0f, MAROON);
+    //TODO: Draw fullscreen button)
 }
 
 void UnloadMainMenu(void) {
     UnloadTexture(GameLogo);
     UnloadTexture(PlayButton);
+    UnloadFont(setback);
 }
 
 bool FinishMainMenu(void) {

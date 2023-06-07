@@ -20,9 +20,9 @@ int main(void) {
     InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
     //InitWindow(0, 0, "SpaceShooter");
     InitGameScreen();
-    SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
-    ToggleFullscreen();
-    
+    //SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
+    //ToggleFullscreen();
+
 
     switch(currentScreen) {
         case LOGO: {
