@@ -30,5 +30,6 @@ Object makeLogo(Texture2D logopng, float scale);
 Object makeMainMenuButton(Texture2D buttonpng, float x, float y, float scale);
 Object explodeanim(Texture2D explosion, Rectangle position, float scale);
 bool checkCollisions(int index);
+void MoveRandomly(int index, float axis);
 
 #endif

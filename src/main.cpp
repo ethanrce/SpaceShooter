@@ -4,6 +4,7 @@
 using std::cout;
 #include "objects.h"
 #include "screens.h"
+#include <cstdlib>
 
 #define SCREENHEIGHT 1200
 #define SCREENWIDTH 1200
@@ -22,7 +23,6 @@ int main(void) {
     InitGameScreen();
     //SetWindowSize(GetMonitorWidth(display2), GetMonitorHeight(display2));
     //ToggleFullscreen();
-
 
     switch(currentScreen) {
         case LOGO: {
@@ -111,6 +111,7 @@ void InitGameScreen(void) {
     display2 = GetCurrentMonitor();
     fps2 = GetMonitorRefreshRate(display2);
     SetTargetFPS(fps2);
+    srand(time(NULL));
 }
 
 // Unloads all load textures, sounds, models, etc.
@@ -119,7 +120,6 @@ UnloadTexture(background);
 }
 
 float RandomNum(int min, int max) {
-    srand(time(0));
     return min + (rand() % (max + 1));
 }
 

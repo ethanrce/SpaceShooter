@@ -14,6 +14,7 @@ using std::cout;
 #define SHIPROTATION 3.0f
 #define LASERSPEED 5.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
+#define ENEMYSSPEED 1.5f
 #define ENEMYLASERCOOLDOWN 2.0f // Seconds between enemy laser shots
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
@@ -138,6 +139,7 @@ void UpdateGame(void) {
         }
     }
     
+
     // TODO: Need to fix borders during window resizing in main menu. (depends on itch.io structure)
     // TODO: Allow for rotation speed slider in main menu
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
@@ -196,13 +198,17 @@ void UpdateGame(void) {
         MakeLaser(ship);
     }
      
-    // Controls enemy laser shooting cooldown
+    // Controls enemy laser shooting cooldown and updating position
     for (int i = 0; i < (int) enemies.size(); i++) {
         enemies[i].frame ++;
         if (enemies[i].frame >= (float)(fps/(1.0f/ENEMYLASERCOOLDOWN))) {
             MakeLaser(enemies[i]);
             enemies[i].frame = 0;
         }
+        float axis = RandomNum(0,1);
+        cout << axis << endl;
+        MoveRandomly(i, axis);
+        cout << "Finish" << endl;
     }
 }
 
@@ -276,4 +282,35 @@ bool checkCollisions(int index) {
         return true;
     }
     return false;
+}
+
+void MoveRandomly(int index, float axis) {
+    if (axis == 0.0f) {
+        float direction = RandomNum(0, 1); 
+        float newx;
+        if (direction == 0) {
+            newx = (-1 * ENEMYSSPEED);
+        } else {
+            newx = ENEMYSSPEED;
+        }
+        if ((enemies[index].position.x + newx) > (GetScreenWidth() - (enemies[index].position.width/2.0f)) || (enemies[index].position.x + newx) < (enemies[index].position.width/2.0f)) {
+            cout << "False" << endl;
+            MoveRandomly(index, axis);
+        }
+       
+        enemies[index].position.x += newx;
+    } else {
+        float direction = RandomNum(0, 1);
+        float newy;
+        if (direction == 0) {
+            newy = (-1 * ENEMYSSPEED);
+        } else {
+            newy = ENEMYSSPEED;
+        }
+        if ((enemies[index].position.y + newy) < (enemies[index].position.height/2.0f) || (enemies[index].position.y + newy) > (GetScreenHeight() - (enemies[index].position.height/2.0f))) {
+            cout << "False" << endl;
+            MoveRandomly(index, axis);
+        }
+        enemies[index].position.y += newy;
+    }
 }
