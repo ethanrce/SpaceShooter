@@ -10,15 +10,13 @@ using std::cout;
 // static variables
 #define FRAMESPEED 8
 //TODO: Speed & rotation should change depending on the window size.
-#define SHIPSPEED 1.5f
+#define SHIPSPEED 2.5f
 #define SHIPROTATION 3.0f
 #define LASERSPEED 5.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
 #define ENEMYLASERCOOLDOWN 2.0f // Seconds between enemy laser shots
-#define EXPLOSIONCOOLDOWN 8
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
-#define FPS 60
 
 // Game texture/Object variables
 Texture2D shippng;
@@ -43,15 +41,12 @@ int framecounter;
 // Laser cooldown, animation & position settings
 int lasershootcounter;
 bool canShoot;
-int lasercounter;
 int laserframe;
-int laserx;
-int lasery; 
 
-// Explosion animation settings
-bool changeFrame;
-int explosioncounter;
+int enemyframe;
 
+int display;
+int fps;
 
 void InitGame(void) {
     LoadTextures();
@@ -60,11 +55,12 @@ void InitGame(void) {
 
     lasershootcounter = 0;
     canShoot = true;
-    lasercounter = 0;
     laserframe = 0;
+    
+    enemyframe = 0;
 
-    changeFrame = false;
-    explosioncounter = 0;
+    display = GetCurrentMonitor();
+    fps = GetMonitorRefreshRate(display);
 }
 
 void LoadTextures(void) {
@@ -88,20 +84,60 @@ void LoadTextures(void) {
 }
 
 void UpdateGame(void) {
-    // Main character sprite animation controller
+    // Controls object animations
     framecounter ++;
-    explosioncounter ++;
     ship.drawRec.y = 0.0f;
-    if (framecounter >= (FPS/FRAMESPEED)) {
+    if (framecounter >= (fps/FRAMESPEED)) {
         spriteframe ++;
         framecounter = 0;
 
-        if (spriteframe > 5) {
-            spriteframe = 1;
+        // Player
+        if (spriteframe >= 5) {
+            spriteframe = 0;
         }
         ship.drawRec.x = ((float)shippng.width/5.0f) * spriteframe;
-    }
 
+        // Enemies
+        if (enemies.size() > 0) {
+            enemyframe ++;
+            if (enemyframe >= 2) {
+                enemyframe = 0;
+            }
+            for (int i = 0; i < (int) enemies.size(); i++) {
+                enemies[i].drawRec.x = ((float)(enemies[i].texture.width/2.0f) * enemyframe);
+            }
+        } else {
+            enemyframe = 0;
+        }
+
+        // Lasers
+        if (lasers.size() > 0) {
+            laserframe ++;
+            if (laserframe >= 2) {
+                laserframe = 0;
+            }
+            for (int i = 0; i < (int) lasers.size(); i++) {
+                lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
+            }
+        } else {
+            laserframe = 0;
+        }
+        
+        // Explosions
+        if (explosions.size() > 0) {
+            for (int i = 0; i < (int) explosions.size(); i++) {
+                explosions[i].frame ++;
+                explosions[i].drawRec.x = ((float)((explosiontext.width/5.0f) * explosions[i].frame));
+                if (explosions[i].frame >= 5) {
+                    explosions.erase(explosions.begin() + i);
+                    if (explosions.size() != 0) {
+                        i --;
+                    } 
+                }
+            }
+        }
+    }
+    
     // TODO: Need to fix borders during window resizing in main menu. (depends on itch.io structure)
     // TODO: Allow for rotation speed slider in main menu
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
@@ -129,11 +165,27 @@ void UpdateGame(void) {
             ship.position.x -= SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
             ship.position.y += SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));
         }
-    }
+    }   
 
-    // Controls laser shooting cooldown
+    // Controls laser position updating each frame & collision checking
+    for (int i = 0; i < (int) lasers.size(); i++) {
+        lasers[i].position.x += LASERSPEED * sinf(lasers[i].rotation * (PI / 180.0f));
+        lasers[i].position.y -= LASERSPEED * cosf(lasers[i].rotation * (PI / 180.0f));
+
+        bool eraseLaser = checkCollisions(i);
+
+        // Dequeues lasers
+        if (eraseLaser || (lasers[i].position.x > GetScreenWidth() || lasers[i].position.x < 0 || lasers[i].position.y > GetScreenHeight() || lasers[i].position.y < 0)) {
+            lasers.erase(lasers.begin() + i); 
+            if (lasers.size() != 0) {
+                i --;
+            }
+        }
+    }
+ 
+    // Controls player laser shooting cooldown
     lasershootcounter ++;
-    if (lasershootcounter >= ((float)(FPS/(1.0f/LASERCOOLDOWN))) && !canShoot) {
+    if (lasershootcounter >= ((float)(fps/(1.0f/LASERCOOLDOWN))) && !canShoot) {
         canShoot = true;
     }
 
@@ -141,13 +193,13 @@ void UpdateGame(void) {
     if (IsKeyPressed(KEY_F) && canShoot) {
         canShoot = false;
         lasershootcounter = 0;
-        explosioncounter = 0;
         MakeLaser(ship);
     }
-
+     
+    // Controls enemy laser shooting cooldown
     for (int i = 0; i < (int) enemies.size(); i++) {
         enemies[i].frame ++;
-        if (enemies[i].frame >= (float)(FPS/(1.0f/ENEMYLASERCOOLDOWN))) {
+        if (enemies[i].frame >= (float)(fps/(1.0f/ENEMYLASERCOOLDOWN))) {
             MakeLaser(enemies[i]);
             enemies[i].frame = 0;
         }
@@ -156,31 +208,13 @@ void UpdateGame(void) {
 
 void DrawGame(void) {
     ClearBackground(RAYWHITE);
-    DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws character
+    DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
 
     // Controls explosion drawing
     if (explosions.size() != 0) {
-        if (explosioncounter >= (FPS/EXPLOSIONCOOLDOWN)) {
-            changeFrame = true;
-        }
         for (int i = 0; i < (int) explosions.size(); i++) {
-            if (changeFrame) {
-                changeFrame = false;
-                explosioncounter = 0;
-                explosions[i].frame ++; 
-            }
-            explosions[i].drawRec.x = ((float)((explosiontext.width/5.0f) * explosions[i].frame));
-            if (explosions[i].frame > 5) {
-                explosions.erase(explosions.begin() + i);
-                if (explosions.size() != 0) {
-                    i --;
-                }  
-            } else {
-                DrawTexturePro(explosiontext, explosions[i].drawRec, explosions[i].position, explosions[i].origin, explosions[i].rotation, RAYWHITE);
-            }
+            DrawTexturePro(explosiontext, explosions[i].drawRec, explosions[i].position, explosions[i].origin, explosions[i].rotation, RAYWHITE);
         }
-    } else {
-        explosioncounter = 0;
     }
 
     // Controls enemy drawing
@@ -193,34 +227,12 @@ void DrawGame(void) {
 
     // Controls laser drawing
     if (lasers.size() != 0) {
-        lasercounter ++;
-        if (lasercounter >= (FPS/FRAMESPEED)) {
-            lasercounter = 0;
-            laserframe ++;
-            if (laserframe >= 2) {
-                laserframe = 0;
-            }
-        }
         for (int i = 0; i < (int)lasers.size(); i++) {
-            lasers[i].drawRec.x = ((float)(laser.width/2.0f) * laserframe);
-            lasers[i].position.x += SHIPSPEED * sinf(lasers[i].rotation * (PI / 180.0f));
-            lasers[i].position.y -= SHIPSPEED * cosf(lasers[i].rotation * (PI / 180.0f));
             DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
-            
-            bool eraseLaser = checkCollisions(i);
-
-            // Dequeues lasers
-            if (eraseLaser || (lasers[i].position.x > GetScreenWidth() || lasers[i].position.x < 0 || lasers[i].position.y > GetScreenHeight() || lasers[i].position.y < 0)) {
-                lasers.erase(lasers.begin() + i); 
-                if (lasers.size() != 0) {
-                    i --;
-                }
-            }
         }
-    } else {
-        lasercounter = 0;
-    }
+    } 
 
+    // Draws FPS on screen
     DrawFPS(10, 10);
 }
 
@@ -243,7 +255,7 @@ void MakeLaser(Object obj) {
     lasers.push_back(newLaser);
 }
 
-// Check laser's collision with all enemies & player
+// Checks laser's collision with all enemies & player
 bool checkCollisions(int index) {
     for (int e = 0; e < (int) enemies.size(); e++) {
         if (CheckCollisionRecs(lasers[index].position, enemies[e].position) && lasers[index].name != enemies[e].name) {
@@ -257,6 +269,7 @@ bool checkCollisions(int index) {
         }             
     }
 
+    // TODO: Fix player collision hitbox.
     if (CheckCollisionRecs(lasers[index].position, ship.position) && lasers[index].name != ship.name) {
         Object explosion = explodeanim(explosiontext, ship.position, scale);
         explosions.push_back(explosion);

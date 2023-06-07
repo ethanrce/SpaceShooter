@@ -11,8 +11,8 @@ using std::cout;
 GameScreen currentScreen;
 Texture2D background;
 NPatchInfo backgroundinfo;
-int display;
-int fps;
+int display2;
+int fps2;
 
 int main(void) {
     //SetConfigFlags(FLAG_WINDOW_RESIZABLE); // Allows window to be resizable by mouse dragging
@@ -20,7 +20,7 @@ int main(void) {
     InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
     //InitWindow(0, 0, "SpaceShooter");
     InitGameScreen();
-    //SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
+    //SetWindowSize(GetMonitorWidth(display2), GetMonitorHeight(display2));
     //ToggleFullscreen();
 
 
@@ -79,7 +79,7 @@ void UpdateDrawingFrame(void) {
      BeginDrawing();
         ClearBackground(RAYWHITE);
         if (IsWindowFullscreen()) {
-            DrawTextureNPatch(background, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetMonitorHeight(display)}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
+            DrawTextureNPatch(background, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetMonitorHeight(display2)}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
         } else {
             DrawTextureNPatch(background, backgroundinfo, (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()}, Vector2Zero(), 0.0f, RAYWHITE); // Draw's background
         }
@@ -108,9 +108,9 @@ void LoadBackground(void) {
 // Initializes game variables/settings
 void InitGameScreen(void) {
     currentScreen = MAINMENU;
-    display = GetCurrentMonitor();
-    fps = GetMonitorRefreshRate(display);
-    SetTargetFPS(fps);
+    display2 = GetCurrentMonitor();
+    fps2 = GetMonitorRefreshRate(display2);
+    SetTargetFPS(fps2);
 }
 
 // Unloads all load textures, sounds, models, etc.
@@ -138,7 +138,11 @@ Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight
 
 Object shootLaser(float x, float y, float rot, float textwidth, float textheight, float scale, const char *obj) {
     Object newLaser;
-    newLaser.drawRec = {0.0f, textheight/2.0f, textwidth/2.0f, textheight/2.0f};
+    if (std::string(obj) == "player") {
+        newLaser.drawRec = {0.0f, textheight/2.0f, textwidth/2.0f, textheight/2.0f}; 
+    } else {
+        newLaser.drawRec = {0.0f, 0.0f, textwidth/2.0f, textheight/2.0f}; //textheight/2.0f
+    }
     newLaser.position = {x, y, textwidth/2.0f * scale, textheight/2.0f * scale};
     newLaser.origin = {textwidth/2.0f, textheight/2.0f};
     newLaser.rotation = rot;
@@ -187,6 +191,6 @@ Object explodeanim(Texture2D explosion, Rectangle position, float scale) {
     newExplosion.position.y = position.y;
     newExplosion.origin = {(float)(newExplosion.position.width/2.0f), (float)(newExplosion.position.height/2.0f)};
     newExplosion.rotation = 0.0f;
-    newExplosion.frame = 1;
+    newExplosion.frame = 0;
     return newExplosion;
 }
