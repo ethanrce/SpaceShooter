@@ -185,7 +185,7 @@ void UpdateGame(void) {
 void DrawGame(void) {
     ClearBackground(RAYWHITE);
     DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
-    DrawCircle(ship.position.x, ship.position.y, ship.position.width/2.0f, RED);
+    DrawCircleLines(ship.position.x, ship.position.y, ship.position.width/2.0f, YELLOW);
     // Controls explosion drawing
     if (explosions.size() != 0) {
         for (int i = 0; i < (int) explosions.size(); i++) {
@@ -197,6 +197,7 @@ void DrawGame(void) {
     if (enemies.size() != 0) {
         for (int i = 0; i < (int) enemies.size(); i++) {
             DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
+            DrawCircleLines(enemies[i].position.x, enemies[i].position.y, enemies[i].position.width/2.0f, YELLOW);
         }
     }
 
@@ -204,6 +205,7 @@ void DrawGame(void) {
     if (lasers.size() != 0) {
         for (int i = 0; i < (int)lasers.size(); i++) {
             DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
+            DrawCircleLines(lasers[i].position.x, lasers[i].position.y, lasers[i].position.width/2.0f, YELLOW);
         }
     } 
 
@@ -232,24 +234,22 @@ void MakeLaser(Object obj) {
 
 // Checks laser's collision with all enemies & player
 bool checkCollisions(int index) {
-    for (int e = 0; e < (int) enemies.size(); e++) {
-        if (CheckCollisionRecs(lasers[index].position, enemies[e].position) && lasers[index].name != enemies[e].name) {
-            Object explosion = explodeanim(explosiontext, enemies[e].position, scale);
+    Vector2 lasercenter = {lasers[index].position.x, lasers[index].position.y};
+    for (int i = 0; i < (int) enemies.size(); i++) {
+        Vector2 enemycenter = {enemies[i].position.x, enemies[i].position.y};
+        if (CheckCollisionCircles(lasercenter, (lasers[index].position.width/2.0f), enemycenter, (enemies[i].position.width/2.0f)) && lasers[index].name != enemies[i].name) {
+            Object explosion = explodeanim(explosiontext, enemies[i].position, scale);
             explosions.push_back(explosion);
-            enemies.erase(enemies.begin() + e);
+            enemies.erase(enemies.begin() + i);
             if (enemies.size() != 0) {
-                e --;    
+                i --;    
             }
             return true;
-        }             
+        }        
     }
 
-    // The player's hitbox is slightly unaligned when rotated
-    Rectangle shiprec = ship.position;
-    shiprec.x -= (ship.position.width/2.0f);
-    shiprec.y -= (ship.position.height/2.0f);
-   // if (CheckCollisionCircleRec)
-    if (CheckCollisionRecs(lasers[index].position, shiprec) && lasers[index].name != ship.name) {
+    Vector2 playercenter = {ship.position.x, ship.position.y};
+    if (CheckCollisionCircles(lasercenter, (lasers[index].position.width/2.0f), playercenter, (ship.position.width/2.0f)) && lasers[index].name != ship.name) {
         Object explosion = explodeanim(explosiontext, ship.position, scale);
         explosions.push_back(explosion);
         return true;
