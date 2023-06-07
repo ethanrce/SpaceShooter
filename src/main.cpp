@@ -123,14 +123,14 @@ float RandomNum(int min, int max) {
     return min + (rand() % (max + 1));
 }
 
-//----------------------------------------------------------------------------------
+//------------------------------------------------------------------------  ----------
 // Object Functions
 //----------------------------------------------------------------------------------
 Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight) {
     Object player;
     player.drawRec = {0.0f, 0.0f, (float)((ship.width/5.0f)), (float)(ship.height/2.0f)};
     player.position = {(float)(ScreenWidth/2.0f), (float)(ScreenHeight/2.0f), (float)(ship.width/5.0f) * scale, (float)(ship.height/2.0f) * scale};
-    player.origin = {(float)(player.position.width/2.0f), (float)(player.position.height/2.0f)};
+    player.origin = {(float)(player.position.width/2.0f), (float)(player.position.height/2.0f)}; 
     player.rotation = 0.0f;
     player.name = "player";
     return player;
@@ -147,7 +147,6 @@ Object shootLaser(float x, float y, float rot, float textwidth, float textheight
     }
     newLaser.position = {x, y, textwidth/2.0f * scale, textheight/2.0f * scale};
     newLaser.origin = {textwidth/2.0f, textheight/2.0f};
-  //  newLaser.rotation = rot;
     newLaser.name = obj;
     return newLaser;
 }
@@ -180,7 +179,7 @@ Object makeMainMenuButton(Texture2D buttonpng, float x, float y, float scale) {
     float width = (buttonpng.width * 1.5f) * scale;
     newButton.drawRec = {0.0f, 0.0f, (float)(buttonpng.width), (float)(buttonpng.height/3.0f)};
     newButton.position = {(float)(x - ((width/2.0f) - (width/16.0f))), y, (float)(width), (float)((buttonpng.height * 0.5f) * scale)}; // The width is divided by 16 to subtract the # of pixels between the actual button and edge of image after the width is scaled
-    newButton.origin = {0.0f, 0.0f};
+    newButton.origin =  {0.0f, 0.0f};
     newButton.rotation = 0.0f;
     newButton.texture = buttonpng;
     return newButton;

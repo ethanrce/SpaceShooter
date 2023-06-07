@@ -10,13 +10,13 @@ using std::cout;
 // static variables
 #define FRAMESPEED 8
 //TODO: Speed & rotation should change depending on the window size.
-#define SHIPSPEED 3.5f
-#define SHIPROTATION 3.0f
+#define SHIPSPEED 5.0f
+#define SHIPROTATION 4.0f
 #define LASERSPEED 5.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
 #define ENEMYSSPEED 1.0f
 #define ENEMYSROTATION 1.5f
-#define ENEMYLASERCOOLDOWN 2.0f // Seconds between enemy laser shots
+#define ENEMYLASERCOOLDOWN 3.0f // Seconds between enemy laser shots
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
 
@@ -39,6 +39,7 @@ Waypoint wp2;
 GamePhase CurrentPhase;
 
 float scale; // Game texture scaling
+float shipscale;
 
 // Main character sprite animation settings
 int spriteframe;
@@ -68,8 +69,8 @@ void InitGame(void) {
     display = GetCurrentMonitor();
     fps = GetMonitorRefreshRate(display);
 
-    enemys1 = makeEnemy(enemys, scale, 100.0f, GetScreenHeight()/2.0f, "enemy");
-    enemys2 = makeEnemy(enemys, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f, "enemy");
+    enemys1 = makeEnemy(enemyl, scale, 100.0f, GetScreenHeight()/2.0f, "enemy");
+    enemys2 = makeEnemy(enemyl, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f, "enemy");
     enemys2.wpindex = 1;
     enemies.push_back(enemys1);
     enemies.push_back(enemys2);
@@ -86,7 +87,8 @@ void LoadTextures(void) {
     shippng = LoadTexture("assets/spritesheets/ship.png"); 
     // TODO: Need to change scale after fullscreen is enabled/disabled.
     scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen. 
-    ship = makePlayer(shippng, scale, GetScreenWidth(), GetScreenHeight());
+    shipscale = (0.07/((shippng.width/5.0f)/GetScreenWidth()));
+    ship = makePlayer(shippng, shipscale, GetScreenWidth(), GetScreenHeight());
 
     explosiontext = LoadTexture("assets/spritesheets/explosion.png");
    
@@ -108,25 +110,36 @@ void UpdateGame(void) {
         }
     }
     if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
-        if (ship.position.x > (ship.position.width/2.0f)) {
+        if ((int)ship.position.x >= (ship.position.width/2.0f)) {
             ship.drawRec.y = (shippng.height/2.0f);
             ship.rotation -= SHIPROTATION;
         }
     }
     if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
-        if (ship.position.y > (ship.position.height/2.0f)) {
-            ship.drawRec.y = shippng.height/2.0f;
-            ship.position.x += SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
-            ship.position.y -= SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));
-        }
+        ship.drawRec.y = shippng.height/2.0f;
+        ship.position.x += SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
+        ship.position.y -= SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));        
     }
     if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)){
-        if (ship.position.y < (GetScreenHeight() - (ship.position.height/2.0f))) {
-            ship.drawRec.y = shippng.height/2.0f;
-            ship.position.x -= SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
-            ship.position.y += SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));
-        }
+        ship.drawRec.y = shippng.height/2.0f;
+        ship.position.x -= SHIPSPEED * sinf(ship.rotation * (PI / 180.0f));
+        ship.position.y += SHIPSPEED * cosf(ship.rotation * (PI / 180.0f));
     }   
+
+    // Controls game world borders
+    // TODO: Change for fullscreen
+    if ((int) ship.position.y <= (int)(ship.position.height/2.0f)) {
+            ship.position.y = (ship.position.height/2.0f);
+        }
+    if ((int) ship.position.y >= (int)(GetScreenHeight() - (ship.position.height/2.0f))) {
+        ship.position.y = (GetScreenHeight() - (ship.position.height/2.0f));
+    }
+    if ((int) ship.position.x <= (int)(ship.position.width/2.0f)) {
+        ship.position.x = (ship.position.width/2.0f);
+    }
+    if ((int) ship.position.x >= (int)(GetScreenWidth() - (ship.position.width/2.0f))) {
+        ship.position.x = (GetScreenWidth() - (ship.position.width/2.0f));
+    }
 
     // Controls laser position updating each frame & collision checking
     for (int i = 0; i < (int) lasers.size(); i++) {
@@ -165,15 +178,14 @@ void UpdateGame(void) {
             enemies[i].frame = 0;
         }
         MoveEnemy(i);
-        RotateEnemy(i);  
-        cout << "Enemy" << i << ": " << enemies[i].rotation << endl;   
+        RotateEnemy(i);   
     }
 }
 
 void DrawGame(void) {
     ClearBackground(RAYWHITE);
     DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
-
+    DrawCircle(ship.position.x, ship.position.y, ship.position.width/2.0f, RED);
     // Controls explosion drawing
     if (explosions.size() != 0) {
         for (int i = 0; i < (int) explosions.size(); i++) {
@@ -182,7 +194,6 @@ void DrawGame(void) {
     }
 
     // Controls enemy drawing
-    // TODO: Decide enemy rotation
     if (enemies.size() != 0) {
         for (int i = 0; i < (int) enemies.size(); i++) {
             DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
@@ -233,8 +244,12 @@ bool checkCollisions(int index) {
         }             
     }
 
-    // TODO: Fix player collision hitbox.
-    if (CheckCollisionRecs(lasers[index].position, ship.position) && lasers[index].name != ship.name) {
+    // The player's hitbox is slightly unaligned when rotated
+    Rectangle shiprec = ship.position;
+    shiprec.x -= (ship.position.width/2.0f);
+    shiprec.y -= (ship.position.height/2.0f);
+   // if (CheckCollisionCircleRec)
+    if (CheckCollisionRecs(lasers[index].position, shiprec) && lasers[index].name != ship.name) {
         Object explosion = explodeanim(explosiontext, ship.position, scale);
         explosions.push_back(explosion);
         return true;
