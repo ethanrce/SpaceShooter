@@ -12,8 +12,9 @@ using std::cout;
 //TODO: Speed & rotation should change depending on the window size.
 #define SHIPSPEED 1.5f
 #define SHIPROTATION 3.0f
-#define LASERSPEED 2.0f
+#define LASERSPEED 5.0f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
+#define ENEMYLASERCOOLDOWN 2.0f // Seconds between enemy laser shots
 #define EXPLOSIONCOOLDOWN 8
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
@@ -77,8 +78,8 @@ void LoadTextures(void) {
     laser = LoadTexture("assets/spritesheets/laser-bolts.png");
 
     enemys = LoadTexture("assets/spritesheets/enemy-small.png");
-    enemys1 = makeEnemy(enemys, scale, 100.0f, GetScreenHeight()/2.0f);
-    enemys2 = makeEnemy(enemys, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f);
+    enemys1 = makeEnemy(enemys, scale, 100.0f, GetScreenHeight()/2.0f, "enemy");
+    enemys2 = makeEnemy(enemys, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f, "enemy");
     enemies.push_back(enemys1);
     enemies.push_back(enemys2);
 
@@ -141,7 +142,15 @@ void UpdateGame(void) {
         canShoot = false;
         lasershootcounter = 0;
         explosioncounter = 0;
-        MakeLaser();
+        MakeLaser(ship);
+    }
+
+    for (int i = 0; i < (int) enemies.size(); i++) {
+        enemies[i].frame ++;
+        if (enemies[i].frame >= (float)(FPS/(1.0f/ENEMYLASERCOOLDOWN))) {
+            MakeLaser(enemies[i]);
+            enemies[i].frame = 0;
+        }
     }
 }
 
@@ -175,14 +184,9 @@ void DrawGame(void) {
     }
 
     // Controls enemy drawing
+    // TODO: Decide enemy rotation
     if (enemies.size() != 0) {
         for (int i = 0; i < (int) enemies.size(); i++) {
-            float relativex = enemies[i].position.x - ship.position.x;
-            if (relativex >= 0.0f) {
-                enemies[i].rotation = 90.0f;
-            } else {
-                enemies[i].rotation = 270.0f;
-            }
             DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
         }
     }
@@ -203,23 +207,8 @@ void DrawGame(void) {
             lasers[i].position.y -= SHIPSPEED * cosf(lasers[i].rotation * (PI / 180.0f));
             DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
             
-            bool eraseLaser = false;
+            bool eraseLaser = checkCollisions(i);
 
-            // Check laser's collision with all enemies
-            if (enemies.size() != 0) { 
-                for (int e = 0; e < (int) enemies.size(); e++) {
-                        if (CheckCollisionRecs(lasers[i].position, enemies[e].position)) {
-                            Object explosion = explodeanim(explosiontext, enemies[e].position, scale);
-                            explosions.push_back(explosion);
-                            enemies.erase(enemies.begin() + e);
-                            eraseLaser = true;   
-                            if (enemies.size() != 0) {
-                                e --;    
-                            }
-                        }             
-                }
-            }
-            
             // Dequeues lasers
             if (eraseLaser || (lasers[i].position.x > GetScreenWidth() || lasers[i].position.x < 0 || lasers[i].position.y > GetScreenHeight() || lasers[i].position.y < 0)) {
                 lasers.erase(lasers.begin() + i); 
@@ -249,7 +238,29 @@ int FinishGame(void) {
 
 // Constructs a new laser if player can shoot.
 // TODO: Make laser shoot from front of ship instead of middle.
-void MakeLaser(void) {
-    Object newLaser = shootLaser(ship.position.x, ship.position.y, ship.rotation, laser.width, laser.height, scale/2.0f);
+void MakeLaser(Object obj) {
+    Object newLaser = shootLaser(obj.position.x, obj.position.y, obj.rotation, laser.width, laser.height, scale/2.0f, obj.name);
     lasers.push_back(newLaser);
+}
+
+// Check laser's collision with all enemies & player
+bool checkCollisions(int index) {
+    for (int e = 0; e < (int) enemies.size(); e++) {
+        if (CheckCollisionRecs(lasers[index].position, enemies[e].position) && lasers[index].name != enemies[e].name) {
+            Object explosion = explodeanim(explosiontext, enemies[e].position, scale);
+            explosions.push_back(explosion);
+            enemies.erase(enemies.begin() + e);
+            if (enemies.size() != 0) {
+                e --;    
+            }
+            return true;
+        }             
+    }
+
+    if (CheckCollisionRecs(lasers[index].position, ship.position) && lasers[index].name != ship.name) {
+        Object explosion = explodeanim(explosiontext, ship.position, scale);
+        explosions.push_back(explosion);
+        return true;
+    }
+    return false;
 }

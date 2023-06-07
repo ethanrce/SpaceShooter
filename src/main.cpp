@@ -132,25 +132,29 @@ Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight
     player.position = {(float)(ScreenWidth/2.0f), (float)(ScreenHeight/2.0f), (float)(ship.width/5.0f) * scale, (float)(ship.height/2.0f) * scale};
     player.origin = {(float)(player.position.width/2.0f), (float)(player.position.height/2.0f)};
     player.rotation = 0.0f;
+    player.name = "player";
     return player;
 }
 
-Object shootLaser(float x, float y, float rot, float textwidth, float textheight, float scale) {
+Object shootLaser(float x, float y, float rot, float textwidth, float textheight, float scale, const char *obj) {
     Object newLaser;
     newLaser.drawRec = {0.0f, textheight/2.0f, textwidth/2.0f, textheight/2.0f};
     newLaser.position = {x, y, textwidth/2.0f * scale, textheight/2.0f * scale};
     newLaser.origin = {textwidth/2.0f, textheight/2.0f};
     newLaser.rotation = rot;
+    newLaser.name = obj;
     return newLaser;
 }
 
-Object makeEnemy(Texture2D enemy, float scale, float x, float y) {
+Object makeEnemy(Texture2D enemy, float scale, float x, float y, const char *obj) {
     Object newEnemy;
     newEnemy.drawRec = {0.0f, 0.0f, (float)((enemy.width/2.0f)), (float)enemy.height};
     newEnemy.position = {x, y, (float)((enemy.width/5.0f) * scale), (float)((enemy.height/2.0f) * scale)};
     newEnemy.origin = {(float)(newEnemy.position.width/2.0f), (float)(newEnemy.position.height/2.0f)};
     newEnemy.rotation = 0.0f;
     newEnemy.texture = enemy;
+    newEnemy.frame = 0;
+    newEnemy.name = obj;
     return newEnemy;
 }
 
