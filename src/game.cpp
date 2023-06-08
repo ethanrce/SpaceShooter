@@ -19,6 +19,7 @@ using std::cout;
 #define ENEMYLASERCOOLDOWN 3.0f // Seconds between enemy laser shots
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
+#define WAVECOOLDOWN 5.0f
 
 // Game texture/Object variables
 Texture2D shippng;
@@ -29,58 +30,45 @@ vector<Object> enemies;
 Texture explosiontext;
 vector<Object> explosions;
 Texture2D enemys;
-Object enemys1; // Temp enemies for testing
-Object enemys2;
 Texture2D enemym;
 Texture2D enemyl;
 vector<Waypoint> waypoints;
-Waypoint wp1; // Temp waypoints for testing
-Waypoint wp2;
 GamePhase CurrentPhase;
 
 float scale; // Game texture scaling
 float shipscale;
-
 // Main character sprite animation settings
 int spriteframe;
 int framecounter;
-
 // Laser cooldown, animation & position settings
 int lasershootcounter;
 bool canShoot;
 int laserframe;
-
 int enemyframe;
-
 int display;
 int fps;
+bool EndGame;
+int wave;
+Font alphabeta;
+bool TransitionOver;
+int wavecounter;
 
 void InitGame(void) {
     LoadTextures();
     spriteframe = 0;
     framecounter = 0;
-
     lasershootcounter = 0;
     canShoot = true;
     laserframe = 0;
-    
     enemyframe = 0;
-
     display = GetCurrentMonitor();
     fps = GetMonitorRefreshRate(display);
-
-    enemys1 = makeEnemy(enemyl, scale, 100.0f, GetScreenHeight()/2.0f, "enemy");
-    enemys2 = makeEnemy(enemyl, scale, GetScreenWidth() - 100, GetScreenHeight()/2.0f, "enemy");
-    enemys2.wpindex = 1;
-    enemies.push_back(enemys1);
-    enemies.push_back(enemys2);
-
-    wp1 = makeWaypoint(GetScreenWidth()/2.0f, 100);
-    wp2 = makeWaypoint(GetScreenWidth()/2.0f, GetScreenHeight() - 100);
-    waypoints.push_back(wp1);
-    waypoints.push_back(wp2);
-
-    CurrentPhase = TRANSITION;
+    CurrentPhase = TRANSITION; // TODO: Work on wave/wavepoint system
+    EndGame = false;
+    wave = 1;
+    alphabeta = LoadFont("assets/Fonts/alpha_beta.png");
+    TransitionOver = false;
+    wavecounter = 0;
 }
 
 void LoadTextures(void) {
@@ -101,6 +89,115 @@ void LoadTextures(void) {
 
 void UpdateGame(void) {
     Animations(); 
+    Movement();
+    switch(CurrentPhase) {
+        case TRANSITION: {
+            if (FinishTransition()) {
+                CurrentPhase = INWAVE;
+            }
+        } break;
+        case INWAVE: {
+            SpawnWave(wave);
+        } break;    
+    }   
+}
+
+void DrawGame(void) {
+    DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
+    DrawFPS(10, 10); // Draws FPS 
+    switch(CurrentPhase) {
+        case TRANSITION: {
+            DrawWave();
+        } break;
+        case INWAVE: {
+            // Controls explosion drawing
+            if (explosions.size() != 0) {
+                for (int i = 0; i < (int) explosions.size(); i++) {
+                    DrawTexturePro(explosiontext, explosions[i].drawRec, explosions[i].position, explosions[i].origin, explosions[i].rotation, RAYWHITE);
+                }
+            }
+
+            // Controls enemy drawing
+            if (enemies.size() != 0) {
+                for (int i = 0; i < (int) enemies.size(); i++) {
+                    DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
+                }
+            }
+
+            // Controls laser drawing
+            if (lasers.size() != 0) {
+                for (int i = 0; i < (int)lasers.size(); i++) {
+                    DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
+                }
+            } 
+        } break;    
+    }
+
+}
+
+void DrawWave(void) {
+    const char *msg = ("Wave: " + std::to_string(wave)).c_str();
+    // TODO: Account for fullscreen
+    Vector2 wavetextsize = MeasureTextEx(alphabeta, msg, (float)(alphabeta.baseSize * scale), (float) 4.0f);
+    DrawTextEx(alphabeta, msg, (Vector2){((GetScreenWidth()/2.0f) - (wavetextsize.x/2.0f)), (GetScreenHeight()/2.0f)}, alphabeta.baseSize*scale, 4.0f, GOLD);
+    wavecounter ++;
+    if (wavecounter >= ((float)(fps/(1.0f/WAVECOOLDOWN)))) {
+        TransitionOver = true;
+        wavecounter = 0;
+    }
+}
+
+bool FinishTransition(void) {
+    return TransitionOver;
+}
+
+void UnloadGame(void) {
+    UnloadTexture(shippng);
+    UnloadTexture(laser);
+    UnloadTexture(enemys);
+    UnloadTexture(enemym);
+    UnloadTexture(enemyl);
+    UnloadFont(alphabeta);
+}
+
+int FinishGame(void) {
+    return EndGame;
+}
+
+void SpawnWave(int wavenum) {
+    makeWaypoints(wavenum + 1);
+    if (wavenum == 1) {
+        float axischoice = RandomNum(0, 4);
+        if (axischoice == 0) {
+            Object enemy = makeEnemy(enemyl, scale, RandomNum(0, GetScreenWidth()), 0.0f, "enemy");
+            enemies.push_back(enemy);
+        } else if (axischoice == 1) {
+            Object enemy = makeEnemy(enemyl, scale, GetScreenWidth(), RandomNum(0, GetScreenHeight()), "enemy");
+            enemies.push_back(enemy);
+        } else if (axischoice == 2) {
+            Object enemy = makeEnemy(enemyl, scale, RandomNum(0, GetScreenWidth()), GetScreenHeight(), "enemy");
+            enemies.push_back(enemy);
+        } else {
+            Object enemy = makeEnemy(enemyl, scale, 0.0f, RandomNum(0, GetScreenHeight()), "enemy");
+            enemies.push_back(enemy);
+        }
+    }
+}
+
+void makeWaypoints(int wavepoints) {
+    for (int i = 0; i < wavepoints; i++) {
+        Waypoint wp = makeWaypoint((int)RandomNum(0, GetScreenWidth()), (int)RandomNum(0, GetScreenHeight()));
+        waypoints.push_back(wp);
+    }
+}
+// Constructs a new laser if player can shoot.
+// TODO: Make laser shoot from front of ship instead of middle.
+void MakeLaser(Object obj) {
+    Object newLaser = shootLaser(obj.position.x, obj.position.y, obj.rotation, laser.width, laser.height, scale/2.0f, obj.name);
+    lasers.push_back(newLaser);
+}
+
+void Movement(void) {
     // TODO: Need to fix borders during window resizing in main menu. (depends on itch.io structure)
     // TODO: Allow for rotation speed slider in main menu
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
@@ -181,57 +278,6 @@ void UpdateGame(void) {
         RotateEnemy(i);   
     }
 }
-
-void DrawGame(void) {
-    ClearBackground(RAYWHITE);
-    DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
-    DrawCircleLines(ship.position.x, ship.position.y, ship.position.width/2.0f, YELLOW);
-    // Controls explosion drawing
-    if (explosions.size() != 0) {
-        for (int i = 0; i < (int) explosions.size(); i++) {
-            DrawTexturePro(explosiontext, explosions[i].drawRec, explosions[i].position, explosions[i].origin, explosions[i].rotation, RAYWHITE);
-        }
-    }
-
-    // Controls enemy drawing
-    if (enemies.size() != 0) {
-        for (int i = 0; i < (int) enemies.size(); i++) {
-            DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
-            DrawCircleLines(enemies[i].position.x, enemies[i].position.y, enemies[i].position.width/2.0f, YELLOW);
-        }
-    }
-
-    // Controls laser drawing
-    if (lasers.size() != 0) {
-        for (int i = 0; i < (int)lasers.size(); i++) {
-            DrawTexturePro(laser, lasers[i].drawRec, lasers[i].position, lasers[i].origin, lasers[i].rotation, RAYWHITE);
-            DrawCircleLines(lasers[i].position.x, lasers[i].position.y, lasers[i].position.width/2.0f, YELLOW);
-        }
-    } 
-
-    // Draws FPS on screen
-    DrawFPS(10, 10);
-}
-
-void UnloadGame(void) {
-    UnloadTexture(shippng);
-    UnloadTexture(laser);
-    UnloadTexture(enemys);
-    UnloadTexture(enemym);
-    UnloadTexture(enemyl);
-}
-
-int FinishGame(void) {
-    return 0;
-}
-
-// Constructs a new laser if player can shoot.
-// TODO: Make laser shoot from front of ship instead of middle.
-void MakeLaser(Object obj) {
-    Object newLaser = shootLaser(obj.position.x, obj.position.y, obj.rotation, laser.width, laser.height, scale/2.0f, obj.name);
-    lasers.push_back(newLaser);
-}
-
 // Checks laser's collision with all enemies & player
 bool checkCollisions(int index) {
     Vector2 lasercenter = {lasers[index].position.x, lasers[index].position.y};
@@ -348,4 +394,8 @@ void RotateEnemy(int index) {
         float maxRotationChange = ENEMYSROTATION;
         float rotationChange = Clamp(rotationDiff, -maxRotationChange, maxRotationChange);
         enemies[index].rotation += rotationChange;
+}
+
+void SpawnEnemy(const char *type) {
+
 }

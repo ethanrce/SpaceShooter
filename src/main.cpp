@@ -129,7 +129,7 @@ float RandomNum(int min, int max) {
 Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight) {
     Object player;
     player.drawRec = {0.0f, 0.0f, (float)((ship.width/5.0f)), (float)(ship.height/2.0f)};
-    player.position = {(float)(ScreenWidth/2.0f), (float)(ScreenHeight/2.0f), (float)(ship.width/5.0f) * scale, (float)(ship.height/2.0f) * scale};
+    player.position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/2.0f - 100), (float)(ship.width/5.0f) * scale, (float)(ship.height/2.0f) * scale};
     player.origin = {(float)(player.position.width/2.0f), (float)(player.position.height/2.0f)}; 
     player.rotation = 0.0f;
     player.name = "player";
