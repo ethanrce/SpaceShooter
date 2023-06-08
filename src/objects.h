@@ -43,7 +43,7 @@ bool checkCollisions(int index);
 void MoveRandomly(int index, float axis);
 void MoveEnemy(int index);
 void RotateEnemy(int index);
-void SpawnEnemy(const char *type);
 void DrawWave(void);
 bool FinishTransition(void);
+bool FinishWave(void);
 #endif

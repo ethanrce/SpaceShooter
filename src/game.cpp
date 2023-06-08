@@ -20,6 +20,7 @@ using std::cout;
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
 #define WAVECOOLDOWN 5.0f
+#define TRANSITIONCOOLDOWN 3.0f
 
 // Game texture/Object variables
 Texture2D shippng;
@@ -52,6 +53,11 @@ int wave;
 Font alphabeta;
 bool TransitionOver;
 int wavecounter;
+bool WaveOver;
+int transitioncounter;
+int score;
+int highscore;
+Font romulus;
 
 void InitGame(void) {
     LoadTextures();
@@ -69,6 +75,11 @@ void InitGame(void) {
     alphabeta = LoadFont("assets/Fonts/alpha_beta.png");
     TransitionOver = false;
     wavecounter = 0;
+    WaveOver = false;
+    transitioncounter = 0;
+    score = 0;
+    highscore = 0;
+    romulus = LoadFont("assets/Fonts/romulus.png");
 }
 
 void LoadTextures(void) {
@@ -93,17 +104,29 @@ void UpdateGame(void) {
     switch(CurrentPhase) {
         case TRANSITION: {
             if (FinishTransition()) {
+                TransitionOver = false;
+                SpawnWave(wave);
+                WaveOver = false;
                 CurrentPhase = INWAVE;
             }
         } break;
         case INWAVE: {
-            SpawnWave(wave);
+            if (FinishWave()) {
+                wave ++;
+                CurrentPhase = TRANSITION;
+            }
         } break;    
     }   
 }
 
 void DrawGame(void) {
     DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
+    const char *wavemsg = ("Wave: " + std::to_string(wave)).c_str();
+    Vector2 wavetxtsize = MeasureTextEx(romulus, wavemsg, (float)(romulus.baseSize * (scale/2.0f)), (float) 4.0f);
+    DrawTextEx(romulus, wavemsg, (Vector2){(GetScreenWidth() - wavetxtsize.x) - 10, 10}, romulus.baseSize*(scale/2.0f), 4.0f, GOLD);
+    const char *scoremsg = ("Score: " + std::to_string(score)).c_str();
+    Vector2 scoretextsize = MeasureTextEx(romulus, scoremsg, (float)(romulus.baseSize * (scale/2.0f)), (float) 4.0f);
+    DrawTextEx(romulus, scoremsg, (Vector2){((GetScreenWidth()/2.0f) - (scoretextsize.x/2.0f)), 10}, romulus.baseSize*(scale/2.0f), 4.0f, GOLD);
     DrawFPS(10, 10); // Draws FPS 
     switch(CurrentPhase) {
         case TRANSITION: {
@@ -122,6 +145,8 @@ void DrawGame(void) {
                 for (int i = 0; i < (int) enemies.size(); i++) {
                     DrawTexturePro(enemies[i].texture, enemies[i].drawRec, enemies[i].position, enemies[i].origin, enemies[i].rotation, RAYWHITE);
                 }
+            } else {
+                WaveOver = true;
             }
 
             // Controls laser drawing
@@ -132,7 +157,6 @@ void DrawGame(void) {
             } 
         } break;    
     }
-
 }
 
 void DrawWave(void) {
@@ -151,6 +175,16 @@ bool FinishTransition(void) {
     return TransitionOver;
 }
 
+bool FinishWave(void) {
+    if (WaveOver) {
+        wavecounter ++;
+        if (wavecounter >= (fps/(1.0/TRANSITIONCOOLDOWN))) {
+            wavecounter = 0;
+            return true;
+        }
+    }
+    return false;
+}
 void UnloadGame(void) {
     UnloadTexture(shippng);
     UnloadTexture(laser);
@@ -158,6 +192,7 @@ void UnloadGame(void) {
     UnloadTexture(enemym);
     UnloadTexture(enemyl);
     UnloadFont(alphabeta);
+    UnloadFont(romulus);
 }
 
 int FinishGame(void) {
@@ -169,16 +204,16 @@ void SpawnWave(int wavenum) {
     if (wavenum == 1) {
         float axischoice = RandomNum(0, 4);
         if (axischoice == 0) {
-            Object enemy = makeEnemy(enemyl, scale, RandomNum(0, GetScreenWidth()), 0.0f, "enemy");
+            Object enemy = makeEnemy(enemyl, scale, RandomNum(0, GetScreenWidth()), 0.0f, "enemyl");
             enemies.push_back(enemy);
         } else if (axischoice == 1) {
-            Object enemy = makeEnemy(enemyl, scale, GetScreenWidth(), RandomNum(0, GetScreenHeight()), "enemy");
+            Object enemy = makeEnemy(enemyl, scale, GetScreenWidth(), RandomNum(0, GetScreenHeight()), "enemyl");
             enemies.push_back(enemy);
         } else if (axischoice == 2) {
-            Object enemy = makeEnemy(enemyl, scale, RandomNum(0, GetScreenWidth()), GetScreenHeight(), "enemy");
+            Object enemy = makeEnemy(enemyl, scale, RandomNum(0, GetScreenWidth()), GetScreenHeight(), "enemyl");
             enemies.push_back(enemy);
         } else {
-            Object enemy = makeEnemy(enemyl, scale, 0.0f, RandomNum(0, GetScreenHeight()), "enemy");
+            Object enemy = makeEnemy(enemyl, scale, 0.0f, RandomNum(0, GetScreenHeight()), "enemyl");
             enemies.push_back(enemy);
         }
     }
@@ -284,6 +319,13 @@ bool checkCollisions(int index) {
     for (int i = 0; i < (int) enemies.size(); i++) {
         Vector2 enemycenter = {enemies[i].position.x, enemies[i].position.y};
         if (CheckCollisionCircles(lasercenter, (lasers[index].position.width/2.0f), enemycenter, (enemies[i].position.width/2.0f)) && lasers[index].name != enemies[i].name) {
+            if (std::string(enemies[i].name) == "enemyl") {
+                score += 100;
+            } else if (std::string(enemies[i].name) == "enemym") {
+                score += 150;
+            } else if (std::string(enemies[i].name) == "enems") {
+                score += 200;
+            }
             Object explosion = explodeanim(explosiontext, enemies[i].position, scale);
             explosions.push_back(explosion);
             enemies.erase(enemies.begin() + i);
@@ -394,8 +436,4 @@ void RotateEnemy(int index) {
         float maxRotationChange = ENEMYSROTATION;
         float rotationChange = Clamp(rotationDiff, -maxRotationChange, maxRotationChange);
         enemies[index].rotation += rotationChange;
-}
-
-void SpawnEnemy(const char *type) {
-
 }
