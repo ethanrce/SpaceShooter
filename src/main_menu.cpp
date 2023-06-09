@@ -16,9 +16,11 @@ bool EndMainMenu;
 float MMscale; //Logos should always be 
 Font setback;
 const char *message;
-
+int MMhighscore;
+Font romulus2;
 void InitMainMenu(void) {
     // TODO: Need to change scale after fullscreen is enabled/disabled
+    // TODO: Draw highscore and fullscreen button on MainMenu.
     MMscale = 1.5f; 
     GameLogo = LoadTexture("assets/MainMenu/GameLogo.png");
     Logo = makeLogo(GameLogo, MMscale);
@@ -34,6 +36,8 @@ void InitMainMenu(void) {
     EndMainMenu = false;
     setback = LoadFont("assets/Fonts/setback.png");
     message = "created by @Ethom";
+    MMhighscore = GetHighScore();
+    romulus2 = LoadFont("assets/Fonts/romulus.png");
 }
 
 void UpdateMainMenu(void) {
@@ -65,6 +69,8 @@ void DrawMainMenu(void) {
     DrawTexturePro(PlayButton, Play.drawRec, Play.position, Play.origin, Play.rotation, RAYWHITE);
     Vector2 textSize = MeasureTextEx(setback, message, (float)(setback.baseSize * MMscale * 3.0f), (float) 4.0f);
     DrawTextEx(setback, message, (Vector2) {((GetScreenWidth()/2.0f) - (textSize.x/2.0f)), ((Logo.position.y + Play.position.y)/2.0f)}, (float)(setback.baseSize * MMscale * 3.0f), (float) 4.0f, MAROON);
+    Vector2 textSize2 = MeasureTextEx(romulus2, ("HighScore: " + std::to_string(MMhighscore)).c_str(), (float)(romulus2.baseSize * MMscale * 3.0f), (float) 4.0f);
+    DrawTextEx(romulus2, ("HighScore: " + std::to_string(MMhighscore)).c_str(), (Vector2) {((GetScreenWidth()/2.0f) - (textSize2.x/2.0f)), (GetScreenHeight()/2.0f)}, (float)(romulus2.baseSize * MMscale * 3.0f), (float) 4.0f, PINK);
     //TODO: Draw fullscreen button)
 }
 
@@ -72,6 +78,7 @@ void UnloadMainMenu(void) {
     UnloadTexture(GameLogo);
     UnloadTexture(PlayButton);
     UnloadFont(setback);
+    UnloadFont(romulus2);
 }
 
 bool FinishMainMenu(void) {

@@ -187,10 +187,10 @@ void DrawEndGame() {
     Vector2 txtsize1 = MeasureTextEx(alphabeta, "You Died", (float)(alphabeta.baseSize * scale), (float) 4.0f);
     DrawTextEx(alphabeta, "You Died", (Vector2){((GetScreenWidth()/2.0f) - (txtsize1.x/2.0f)), ((GetScreenHeight()/2.0f) - 100)}, alphabeta.baseSize*scale, 4.0f, RED);
     Vector2 txtsize2 = MeasureTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (float)(alphabeta.baseSize * scale), (float) 4.0f);
-    DrawTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (Vector2){((GetScreenWidth()/2.0f) - (txtsize2.x/2.0f)), (GetScreenHeight()/2.0f)}, alphabeta.baseSize*scale, 4.0f, GOLD);
+    DrawTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (Vector2){((GetScreenWidth()/2.0f) - (txtsize2.x/2.0f)), (GetScreenHeight()/2.0f)}, alphabeta.baseSize*scale, 4.0f, DARKPURPLE);
     if (score > highscore) {
         Vector2 txtsize3 = MeasureTextEx(alphabeta, "You Got A New Highscore!", (float)(alphabeta.baseSize * scale), (float) 4.0f);
-        DrawTextEx(alphabeta, "You Got A New Highscore!", (Vector2){((GetScreenWidth()/2.0f) - (txtsize3.x/2.0f)), ((GetScreenHeight()/2.0f) + 100)}, alphabeta.baseSize*scale, 4.0f, GOLD);
+        DrawTextEx(alphabeta, "You Got A New Highscore!", (Vector2){((GetScreenWidth()/2.0f) - (txtsize3.x/2.0f)), ((GetScreenHeight()/2.0f) + 100)}, alphabeta.baseSize*scale, 4.0f, DARKPURPLE);
     }
 }
 
@@ -225,7 +225,7 @@ int FinishGame(void) {
 }
 
 int GetHighScore(void) {
-    return highscore;
+    return LoadStorageValue(STORAGE_POSITION_HISCORE);
 }
 
 void UnloadGame(void) {
