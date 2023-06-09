@@ -10,17 +10,16 @@ using std::cout;
 
 // static variables
 #define FRAMESPEED 8
-//TODO: Speed & rotation should change depending on the window size.
-#define SHIPSPEED 5.0f
-#define SHIPROTATION 4.0f
-#define LASERSPEED 6.5f
+//#define SHIPSPEED 5.0f
+//#define SHIPROTATION 3.0f
+//#define LASERSPEED 6.5f
+//#define ENEMYSSPEED 1.5f
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
-#define ENEMYSSPEED 1.5f
 #define ENEMYSROTATION 1.5f
 #define ENEMYLASERCOOLDOWN 3.0f // Seconds between enemy laser shots
 #define SCREENHEIGHT 800
 #define SCREENWIDTH 800
-#define WAVECOOLDOWN 5.0f
+#define WAVECOOLDOWN 3.0f
 #define TRANSITIONCOOLDOWN 3.0f
 #define ENDGAMECOOLDOWN 6.0f
 #define STORAGE_DATA_FILE "storage.data"
@@ -52,7 +51,6 @@ int lasershootcounter;
 bool canShoot;
 int laserframe;
 int enemyframe;
-int display;
 int fps;
 bool EndGame;
 int wave;
@@ -64,18 +62,25 @@ int transitioncounter;
 int score;
 Font romulus;
 int highscore;
-
+float SHIPSPEED;
+float SHIPROTATION;
+float LASERSPEED;
+float ENEMYSSPEED;
 
 void InitGame(void) {
     LoadTextures();
+    SaveStorageValue(STORAGE_POSITION_HISCORE, 0);
+    SHIPSPEED = (CheckWidth()/(1200/5.0f));
+    SHIPROTATION = (CheckWidth()/(1200/3.0f));
+    LASERSPEED = (CheckWidth()/(1200/6.5f));
+    ENEMYSSPEED = (CheckWidth()/(1200/1.5f));
     spriteframe = 0;
     framecounter = 0;
     lasershootcounter = 0;
     canShoot = true;
     laserframe = 0;
     enemyframe = 0;
-    display = GetCurrentMonitor();
-    fps = GetMonitorRefreshRate(display);
+    fps = 60;
     CurrentPhase = TRANSITION;
     EndGame = false;
     wave = 1;
@@ -90,15 +95,11 @@ void InitGame(void) {
 
 void LoadTextures(void) {
     shippng = LoadTexture("assets/spritesheets/ship.png"); 
-    // TODO: Need to change scale after fullscreen is enabled/disabled.
-    scale = (0.1/((shippng.width/5.0f)/GetScreenWidth())); // Character's width should be 10% of screen. 
-    shipscale = (0.07/((shippng.width/5.0f)/GetScreenWidth()));
-    ship = makePlayer(shippng, shipscale, GetScreenWidth(), GetScreenHeight());
-
+    scale = (0.1/((shippng.width/5.0f)/CheckWidth())); // Character's width should be 10% of screen. 
+    shipscale = (0.07/((shippng.width/5.0f)/CheckWidth()));
+    ship = makePlayer(shippng, shipscale, CheckWidth(), CheckHeight());
     explosiontext = LoadTexture("assets/spritesheets/explosion.png");
-   
     laser = LoadTexture("assets/spritesheets/laser-bolts.png");
-
     enemys = LoadTexture("assets/spritesheets/enemy-small.png");
     enemym = LoadTexture("assets/spritesheets/enemy-medium.png");
     enemyl = LoadTexture("assets/spritesheets/enemy-big.png");
@@ -124,17 +125,17 @@ void UpdateGame(void) {
         } break;    
     }   
 }
-// TODO: Keeping track of highscore (Drawing on MainMenu & when occurs)
+
 void DrawGame(void) {
     if (!EndGame) {
         DrawTexturePro(shippng, ship.drawRec, ship.position, ship.origin, ship.rotation, RAYWHITE); //Draws player
     }
     const char *wavemsg = ("Wave: " + std::to_string(wave)).c_str();
     Vector2 wavetxtsize = MeasureTextEx(romulus, wavemsg, (float)(romulus.baseSize * (scale/2.0f)), (float) 4.0f);
-    DrawTextEx(romulus, wavemsg, (Vector2){(GetScreenWidth() - wavetxtsize.x) - 10, 10}, romulus.baseSize*(scale/2.0f), 4.0f, GOLD);
+    DrawTextEx(romulus, wavemsg, (Vector2){(CheckWidth() - wavetxtsize.x) - 10, 10}, romulus.baseSize*(scale/2.0f), 4.0f, GOLD);
     const char *scoremsg = ("Score: " + std::to_string(score)).c_str();
     Vector2 scoretextsize = MeasureTextEx(romulus, scoremsg, (float)(romulus.baseSize * (scale/2.0f)), (float) 4.0f);
-    DrawTextEx(romulus, scoremsg, (Vector2){((GetScreenWidth()/2.0f) - (scoretextsize.x/2.0f)), 10}, romulus.baseSize*(scale/2.0f), 4.0f, GOLD);
+    DrawTextEx(romulus, scoremsg, (Vector2){((CheckWidth()/2.0f) - (scoretextsize.x/2.0f)), 10}, romulus.baseSize*(scale/2.0f), 4.0f, GOLD);
     // Controls explosion drawing
     if (explosions.size() != 0) {
         for (int i = 0; i < (int) explosions.size(); i++) {
@@ -172,9 +173,8 @@ void DrawGame(void) {
 
 void DrawWave(void) {
     const char *msg = ("Wave: " + std::to_string(wave)).c_str();
-    // TODO: Account for fullscreen
     Vector2 wavetextsize = MeasureTextEx(alphabeta, msg, (float)(alphabeta.baseSize * scale), (float) 4.0f);
-    DrawTextEx(alphabeta, msg, (Vector2){((GetScreenWidth()/2.0f) - (wavetextsize.x/2.0f)), (GetScreenHeight()/2.0f)}, alphabeta.baseSize*scale, 4.0f, DARKPURPLE);
+    DrawTextEx(alphabeta, msg, (Vector2){((CheckWidth()/2.0f) - (wavetextsize.x/2.0f)), (CheckHeight()/2.0f)}, alphabeta.baseSize*scale, 4.0f, DARKPURPLE);
     wavecounter ++;
     if (wavecounter >= ((float)(fps/(1.0f/WAVECOOLDOWN)))) {
         TransitionOver = true;
@@ -183,14 +183,13 @@ void DrawWave(void) {
 }
 
 void DrawEndGame() {
-    // TODO: Account for fullscreen
-    Vector2 txtsize1 = MeasureTextEx(alphabeta, "You Died", (float)(alphabeta.baseSize * scale), (float) 4.0f);
-    DrawTextEx(alphabeta, "You Died", (Vector2){((GetScreenWidth()/2.0f) - (txtsize1.x/2.0f)), ((GetScreenHeight()/2.0f) - 100)}, alphabeta.baseSize*scale, 4.0f, RED);
-    Vector2 txtsize2 = MeasureTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (float)(alphabeta.baseSize * scale), (float) 4.0f);
-    DrawTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (Vector2){((GetScreenWidth()/2.0f) - (txtsize2.x/2.0f)), (GetScreenHeight()/2.0f)}, alphabeta.baseSize*scale, 4.0f, DARKPURPLE);
+    Vector2 txtsize1 = MeasureTextEx(alphabeta, "You Died", (float)(alphabeta.baseSize * (scale/2.0f)), (float) 4.0f);
+    DrawTextEx(alphabeta, "You Died", (Vector2){((CheckWidth()/2.0f) - (txtsize1.x/2.0f)), ((CheckHeight()/2.0f) - (CheckHeight()/(1200/200.0f)))}, alphabeta.baseSize*(scale/2.0f), 4.0f, RED);
+    Vector2 txtsize2 = MeasureTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (float)alphabeta.baseSize * (scale/2.0f), (float) 4.0f);
+    DrawTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (Vector2){((CheckWidth()/2.0f) - (txtsize2.x/2.0f)), (CheckHeight()/2.0f)}, alphabeta.baseSize*(scale/2.0f), 4.0f, DARKPURPLE);
     if (score > highscore) {
-        Vector2 txtsize3 = MeasureTextEx(alphabeta, "You Got A New Highscore!", (float)(alphabeta.baseSize * scale), (float) 4.0f);
-        DrawTextEx(alphabeta, "You Got A New Highscore!", (Vector2){((GetScreenWidth()/2.0f) - (txtsize3.x/2.0f)), ((GetScreenHeight()/2.0f) + 100)}, alphabeta.baseSize*scale, 4.0f, DARKPURPLE);
+        Vector2 txtsize3 = MeasureTextEx(alphabeta, "You Got A New Highscore!", (float)(alphabeta.baseSize * (scale/2.0f)), (float) 4.0f);
+        DrawTextEx(alphabeta, "You Got A New Highscore!", (Vector2){((CheckWidth()/2.0f) - (txtsize3.x/2.0f)), ((CheckHeight()/2.0f) + (CheckHeight()/(1200/200.0f)))}, alphabeta.baseSize*(scale/2.0f), 4.0f, DARKPURPLE);
     }
 }
 
@@ -209,7 +208,6 @@ bool FinishWave(void) {
     return false;
 }
 
-// TODO: Make game ending implementation when player is shot
 int FinishGame(void) {
     if (EndGame) {
         CurrentPhase = TRANSITION;
@@ -251,13 +249,13 @@ void SpawnWave(int wavenum) {
         float type = RandomNum(0, 2);
         Vector2 enemypos;
         if (axischoice == 0) {
-            enemypos = {RandomNum(0, GetScreenWidth()), 0.0f};
+            enemypos = {RandomNum(0, CheckWidth()), 0.0f};
         } else if (axischoice == 1) {
-            enemypos = {(float)GetScreenWidth(), RandomNum(0, GetScreenHeight())};
+            enemypos = {(float)CheckWidth(), RandomNum(0, CheckHeight())};
         } else if (axischoice == 2) {
-            enemypos = {RandomNum(0, GetScreenWidth()), (float)GetScreenHeight()};
+            enemypos = {RandomNum(0, CheckWidth()), (float)CheckHeight()};
         } else {
-            enemypos = {0.0f, RandomNum(0, GetScreenHeight())};
+            enemypos = {0.0f, RandomNum(0, CheckHeight())};
         }
         if (type == 0) {
             enemy = makeEnemy(enemys, scale, enemypos.x, enemypos.y, "enemys");
@@ -276,7 +274,7 @@ void makeWaypoints(int wps) {
         waypoints.clear();
     }
     for (int i = 0; i < wps; i++) {
-        Waypoint wp = makeWaypoint((int)RandomNum(20, GetScreenWidth() - 20), (int)RandomNum(20, GetScreenHeight() - 20));
+        Waypoint wp = makeWaypoint((int)RandomNum(20, CheckWidth() - 20), (int)RandomNum(20, CheckHeight() - 20));
         waypoints.push_back(wp);
     }
 }
@@ -288,10 +286,8 @@ void MakeLaser(Object obj) {
 }
 
 void Movement(void) {
-    // TODO: Need to fix borders during window resizing in main menu. (depends on itch.io structure)
-    // TODO: Allow for rotation speed slider in main menu
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
-        if (ship.position.x < (GetScreenWidth() - (ship.position.width/2.0f))) {
+        if (ship.position.x < (CheckWidth() - (ship.position.width/2.0f))) {
             ship.drawRec.y = (shippng.height/2.0f);
             ship.rotation += SHIPROTATION;
         }
@@ -314,18 +310,17 @@ void Movement(void) {
     }   
 
     // Controls game world borders
-    // TODO: Change for fullscreen
     if ((int) ship.position.y <= (int)(ship.position.height/2.0f)) {
             ship.position.y = (ship.position.height/2.0f);
         }
-    if ((int) ship.position.y >= (int)(GetScreenHeight() - (ship.position.height/2.0f))) {
-        ship.position.y = (GetScreenHeight() - (ship.position.height/2.0f));
+    if ((int) ship.position.y >= (int)(CheckHeight() - (ship.position.height/2.0f))) {
+        ship.position.y = (CheckHeight() - (ship.position.height/2.0f));
     }
     if ((int) ship.position.x <= (int)(ship.position.width/2.0f)) {
         ship.position.x = (ship.position.width/2.0f);
     }
-    if ((int) ship.position.x >= (int)(GetScreenWidth() - (ship.position.width/2.0f))) {
-        ship.position.x = (GetScreenWidth() - (ship.position.width/2.0f));
+    if ((int) ship.position.x >= (int)(CheckWidth() - (ship.position.width/2.0f))) {
+        ship.position.x = (CheckWidth() - (ship.position.width/2.0f));
     }
 
     // Controls laser position updating each frame & collision checking
@@ -336,7 +331,7 @@ void Movement(void) {
         bool eraseLaser = checkCollisions(i);
 
         // Dequeues lasers
-        if (eraseLaser || (lasers[i].position.x > GetScreenWidth() || lasers[i].position.x < 0 || lasers[i].position.y > GetScreenHeight() || lasers[i].position.y < 0)) {
+        if (eraseLaser || (lasers[i].position.x > CheckWidth() || lasers[i].position.x < 0 || lasers[i].position.y > CheckHeight() || lasers[i].position.y < 0)) {
             lasers.erase(lasers.begin() + i); 
             if (lasers.size() != 0) {
                 i --;
@@ -368,6 +363,7 @@ void Movement(void) {
         RotateEnemy(i);   
     }
 }
+
 // Checks laser's collision with all enemies & player
 bool checkCollisions(int index) {
     Vector2 lasercenter = {lasers[index].position.x, lasers[index].position.y};
@@ -473,7 +469,7 @@ void MoveEnemy(int index) {
         enemies[index].position.y -= ENEMYSSPEED;
     }
 
-    if ( (abs((int)(enemies[index].position.x) - currwp.x)) < 2 && abs(((int)(enemies[index].position.y) - currwp.y)) < 2)  {
+    if ((abs((int)(enemies[index].position.x) - currwp.x)) < (ENEMYSSPEED + 1) && abs(((int)(enemies[index].position.y) - currwp.y)) < (ENEMYSSPEED + 1))  {
         int wpnum = enemies[index].wpindex;
         while (enemies[index].wpindex == wpnum) {
             enemies[index].wpindex = RandomNum(0, (int) waypoints.size() - 1);

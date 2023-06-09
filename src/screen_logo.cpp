@@ -48,6 +48,9 @@ static int rightSideRecHeight = 0;
 static int state = 0;              // Logo animation states
 static float alpha = 1.0f;         // Useful for fading
 
+Sound LevelWin;
+
+int display3;
 //----------------------------------------------------------------------------------
 // Logo Screen Functions Definition
 //----------------------------------------------------------------------------------
@@ -69,6 +72,8 @@ void InitLogoScreen(void)
 
     state = 0;
     alpha = 1.0f;
+    
+    LevelWin = LoadSound("assets/Audio/LevelWin.wav");
 }
 
 // Logo Screen Update logic
@@ -113,7 +118,7 @@ void UpdateLogoScreen(void)
         }
         else    // When all letters have appeared, just fade out everything
         {
-          //  if (framesCounter == 20) PlaySound(levelWin);
+            if (framesCounter == 20) PlaySound(LevelWin);
         
             if (framesCounter > 200)
             {

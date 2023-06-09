@@ -54,6 +54,8 @@ void Movement(void);
 void MoveRandomly(int index, float axis);
 void MoveEnemy(int index);
 void RotateEnemy(int index);
+int CheckWidth();
+int CheckHeight();
 
 //----------------------------------------------------------------------------------
 // Gameplay Functions Declarations
