@@ -1,0 +1,5 @@
+WIN:
+butler push "SpaceShooter.zip" ethanrce/SpaceShooter:win
+MAC:
+butler push "SpaceShooter.zip" ethanrce/SpaceShooter:mac
+
