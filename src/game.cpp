@@ -17,8 +17,6 @@ using std::cout;
 #define LASERCOOLDOWN 1.0f // Seconds between laser shots
 #define ENEMYSROTATION 1.5f
 #define ENEMYLASERCOOLDOWN 3.0f // Seconds between enemy laser shots
-#define SCREENHEIGHT 800
-#define SCREENWIDTH 800
 #define WAVECOOLDOWN 3.0f
 #define TRANSITIONCOOLDOWN 3.0f
 #define ENDGAMECOOLDOWN 6.0f
@@ -69,11 +67,11 @@ float ENEMYSSPEED;
 
 void InitGame(void) {
     LoadTextures();
-    SaveStorageValue(STORAGE_POSITION_HISCORE, 0);
-    SHIPSPEED = (CheckWidth()/(1200/5.0f));
-    SHIPROTATION = (CheckWidth()/(1200/3.0f));
-    LASERSPEED = (CheckWidth()/(1200/6.5f));
-    ENEMYSSPEED = (CheckWidth()/(1200/1.5f));
+    SaveStorageValue(STORAGE_POSITION_HISCORE, 0); // Reset high-score to 0 (For updating purposes)
+    SHIPSPEED = (CheckWidth()/(SCREENWIDTH/5.0f));
+    SHIPROTATION = (CheckWidth()/(SCREENWIDTH/3.0f));
+    LASERSPEED = (CheckWidth()/(SCREENWIDTH/6.5f));
+    ENEMYSSPEED = (CheckWidth()/(SCREENWIDTH/1.5f));
     spriteframe = 0;
     framecounter = 0;
     lasershootcounter = 0;
@@ -184,12 +182,12 @@ void DrawWave(void) {
 
 void DrawEndGame() {
     Vector2 txtsize1 = MeasureTextEx(alphabeta, "You Died", (float)(alphabeta.baseSize * (scale/2.0f)), (float) 4.0f);
-    DrawTextEx(alphabeta, "You Died", (Vector2){((CheckWidth()/2.0f) - (txtsize1.x/2.0f)), ((CheckHeight()/2.0f) - (CheckHeight()/(1200/200.0f)))}, alphabeta.baseSize*(scale/2.0f), 4.0f, RED);
+    DrawTextEx(alphabeta, "You Died", (Vector2){((CheckWidth()/2.0f) - (txtsize1.x/2.0f)), ((CheckHeight()/2.0f) - (CheckHeight()/(SCREENHEIGHT/200.0f)))}, alphabeta.baseSize*(scale/2.0f), 4.0f, RED);
     Vector2 txtsize2 = MeasureTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (float)alphabeta.baseSize * (scale/2.0f), (float) 4.0f);
     DrawTextEx(alphabeta, ("Score: " + std::to_string(score)).c_str(), (Vector2){((CheckWidth()/2.0f) - (txtsize2.x/2.0f)), (CheckHeight()/2.0f)}, alphabeta.baseSize*(scale/2.0f), 4.0f, DARKPURPLE);
     if (score > highscore) {
         Vector2 txtsize3 = MeasureTextEx(alphabeta, "You Got A New Highscore!", (float)(alphabeta.baseSize * (scale/2.0f)), (float) 4.0f);
-        DrawTextEx(alphabeta, "You Got A New Highscore!", (Vector2){((CheckWidth()/2.0f) - (txtsize3.x/2.0f)), ((CheckHeight()/2.0f) + (CheckHeight()/(1200/200.0f)))}, alphabeta.baseSize*(scale/2.0f), 4.0f, DARKPURPLE);
+        DrawTextEx(alphabeta, "You Got A New Highscore!", (Vector2){((CheckWidth()/2.0f) - (txtsize3.x/2.0f)), ((CheckHeight()/2.0f) + (CheckHeight()/(SCREENHEIGHT/200.0f)))}, alphabeta.baseSize*(scale/2.0f), 4.0f, DARKPURPLE);
     }
 }
 

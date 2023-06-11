@@ -1,5 +1,7 @@
 #ifndef SCREENS_H
 #define SCREENS_H
+#include <iostream>
+using std::string;
 
 enum GameScreen {LOGO, MAINMENU, GAME};
 enum GamePhase {TRANSITION, INWAVE};
@@ -29,7 +31,7 @@ void UpdateMainMenu(void);
 void DrawMainMenu(void);
 void UnloadMainMenu();
 bool FinishMainMenu(void);
-bool CheckButtonHover(void);
+string CheckButtonHover(void);
 
 //----------------------------------------------------------------------------------
 // Game Screen Functions Declaration

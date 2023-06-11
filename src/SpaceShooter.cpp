@@ -6,8 +6,7 @@ using std::cout;
 #include "screens.h"
 #include <cstdlib>
 
-#define SCREENHEIGHT 1200
-#define SCREENWIDTH 1200
+
 //#define STORAGE_DATA_FILE "storage.data"
 
 GameScreen currentScreen;
@@ -22,8 +21,6 @@ int main(void) {
 
     InitWindow(SCREENHEIGHT, SCREENWIDTH, "SpaceShooter");
     InitAudioDevice();
-    SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
-    ToggleFullscreen();
     
     InitGameScreen();
     
@@ -195,11 +192,21 @@ Object makeLogo(Texture2D logopng, float scale) {
     return newLogo;
 }
 
-//TODO: Center play button 
-Object makeMainMenuButton(Texture2D buttonpng, float x, float y, float scale) {
+Object makePlayButton(Texture2D buttonpng, float x, float y, float scale) {
     Object newButton;
     float width = (buttonpng.width * 1.5f) * scale;
     newButton.drawRec = {0.0f, 0.0f, (float)(buttonpng.width), (float)(buttonpng.height/3.0f)};
+    newButton.position = {(float)(x - (width/2.0f)), y, (float)(width), (float)((buttonpng.height * 0.5f) * scale)};
+    newButton.origin =  {0.0f, 0.0f};
+    newButton.rotation = 0.0f;
+    newButton.texture = buttonpng;
+    return newButton;
+}
+
+Object makeFullScreenButton(Texture2D buttonpng, float x, float y, float scale) {
+    Object newButton;
+    float width = ((buttonpng.width/2.0f) * 1.5f) * scale;
+    newButton.drawRec = {0.0f, 0.0f, (float)(buttonpng.width/2.0f), (float)(buttonpng.height/2.0f)};
     newButton.position = {(float)(x - (width/2.0f)), y, (float)(width), (float)((buttonpng.height * 0.5f) * scale)};
     newButton.origin =  {0.0f, 0.0f};
     newButton.rotation = 0.0f;
