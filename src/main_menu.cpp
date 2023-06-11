@@ -106,8 +106,8 @@ void DrawMainMenu(void) {
     DrawTexturePro(GameLogo, Logo.drawRec, Logo.position, Logo.origin, Logo.rotation, RAYWHITE);
     DrawTexturePro(PlayButton, Play.drawRec, Play.position, Play.origin, Play.rotation, RAYWHITE);
     DrawTexturePro(FullScreenButton, FullScreen.drawRec, FullScreen.position, FullScreen.origin, FullScreen.rotation, RAYWHITE);
-    DrawRectangleLines(Play.position.x, Play.position.y, Play.position.width, Play.position.height, RED);
-    DrawRectangleLines(FullScreen.position.x, FullScreen.position.y, FullScreen.position.width, FullScreen.position.height, RED);
+    //DrawRectangleLines(Play.position.x, Play.position.y, Play.position.width, Play.position.height, RED);
+    //DrawRectangleLines(FullScreen.position.x, FullScreen.position.y, FullScreen.position.width, FullScreen.position.height, RED);
     // DrawLine((int)((CheckWidth()/2.0f)-3), 0, (int)((CheckWidth()/2.0f)+3), (int)(CheckHeight()), RED);
     Vector2 textSize = MeasureTextEx(setback, message, (float)(setback.baseSize * MMscale * 3.0f), (float) 4.0f);
     DrawTextEx(setback, message, (Vector2) {((CheckWidth()/2.0f) - (textSize.x/2.0f)), ((Logo.position.y + Play.position.y)/2.0f)}, (float)(setback.baseSize * MMscale * 3.0f), (float) 4.0f, MAROON);
