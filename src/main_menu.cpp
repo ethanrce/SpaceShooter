@@ -56,6 +56,7 @@ void UpdateMainMenu(void) {
     // Check button state
     // cout << CheckButtonHover() << " " <<  IsWindowFullscreen() << endl;
     if (CheckButtonHover() == "Play") {
+        FullScreen.drawRec.y = 0;
         if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
             btnState = 2;
         } else {
@@ -65,6 +66,7 @@ void UpdateMainMenu(void) {
             btnAction = true;
         } 
     } else if (CheckButtonHover() == "FullScreen") {
+        btnState = 0;
         FullScreen.drawRec.y = (float)((FullScreen.texture.height/2.0f));
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             btnAction2 = true;
