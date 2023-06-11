@@ -67,7 +67,7 @@ float ENEMYSSPEED;
 
 void InitGame(void) {
     LoadTextures();
-    SaveStorageValue(STORAGE_POSITION_HISCORE, 0); // Reset high-score to 0 (For updating purposes)
+    //SaveStorageValue(STORAGE_POSITION_HISCORE, 0); // Reset high-score to 0 (For updating purposes)
     SHIPSPEED = (CheckWidth()/(SCREENWIDTH/5.0f));
     SHIPROTATION = (CheckWidth()/(SCREENWIDTH/3.0f));
     LASERSPEED = (CheckWidth()/(SCREENWIDTH/6.5f));

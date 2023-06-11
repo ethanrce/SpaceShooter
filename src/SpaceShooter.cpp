@@ -146,7 +146,7 @@ float RandomNum(int min, int max) {
 Object makePlayer(Texture2D ship, float scale, int ScreenWidth, int ScreenHeight) {
     Object player;
     player.drawRec = {0.0f, 0.0f, (float)((ship.width/5.0f)), (float)(ship.height/2.0f)};
-    player.position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/2.0f - 100), (float)(ship.width/5.0f) * scale, (float)(ship.height/2.0f) * scale};
+    player.position = {(float)(CheckWidth()/2.0f), (float)(CheckHeight()/2.0f - 100), (float)(ship.width/5.0f) * scale, (float)(ship.height/2.0f) * scale};
     player.origin = {(float)(player.position.width/2.0f), (float)(player.position.height/2.0f)}; 
     player.rotation = 0.0f;
     player.name = "player";
@@ -186,7 +186,7 @@ Object makeEnemy(Texture2D enemy, float scale, float x, float y, const char *obj
 Object makeLogo(Texture2D logopng, float scale) {
     Object newLogo;
     newLogo.drawRec = {0.0f, 0.0f, (float)(logopng.width), (float)(logopng.height)};
-    newLogo.position = {(float)(GetScreenWidth()/2.0f), (float)(GetScreenHeight()/6.0f), (float)((logopng.width * 0.8) * scale), (float)((logopng.height * 0.7) * scale)};
+    newLogo.position = {(float)(CheckWidth()/2.0f), (float)(CheckHeight()/(800/133)), (float)((logopng.width * 0.8) * scale), (float)((logopng.height * 0.7) * scale)};
     newLogo.origin = {(float)(newLogo.position.width/2.0f), (float)(newLogo.position.height/2.0f)};
     newLogo.rotation = 0.0f;
     return newLogo;
