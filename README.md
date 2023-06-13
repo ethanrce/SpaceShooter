@@ -11,6 +11,9 @@ Space Shooter Environment: https://ansimuz.itch.io/spaceship-shooter-environment
 
 Currently majority of production on the game has been finalized with minor updates from time to time.
 
+![MainMenu](images/MainMenu.png)
+![GamePlay](images/GamePlay.png)
+
 **The game includes:**
 - Fighting off waves of enemies
 - Shooting for survival while avoiding being hit
