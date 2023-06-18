@@ -31,12 +31,15 @@ Currently majority of production on the game has been finalized with minor updat
 
 ## How to Access:
 **Through Itch.io**
+
 Link: https://ethanrce.itch.io/spaceshooter
 1. Navigate to the website and click Download Now.
 2. Download the appropiate version of the game for your OS. 
 3. Unzip/Extract all files into a folder.
 4. Run the "Spaceshooter" application.
 
-**Through GitHub**
+**Through GitHub:**
+
 Navigate to the link.
+
 Link: https://github.com/ethanrce/SpaceShooter/releases/tag/1.0
