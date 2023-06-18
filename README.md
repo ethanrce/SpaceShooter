@@ -38,7 +38,5 @@ Link: https://ethanrce.itch.io/spaceshooter
 4. Run the "Spaceshooter" application.
 
 **Through GitHub**
-1. Navigate to the main branch of this repository.
-2. Click the green Download button and click downlaod zip.
-3. Unzip/Extract the SpaceShooter zip file then the SpaceShooter(OS) zip file into different folders depending on your OS.
-4. Run the "Spaceshooter" application.
+Navigate to the link.
+Link: https://github.com/ethanrce/SpaceShooter/releases/tag/1.0
